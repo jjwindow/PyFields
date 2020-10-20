@@ -16,7 +16,7 @@ import scipy as sp
 ###################### GLOBAL DEFINITIONS ############################
 
 # Uranus Coefficients
-g_U =1np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
+g_U = np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
 h_U = np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
 a_u = 1
 
@@ -36,6 +36,12 @@ def legendre(n, m, th):
     Function to return value of Legendre polynomial degree n, order m, calculated at angle theta.
     """
     return lgd[n][m](th)
+
+def legendre_prime(n, m, th):
+    """
+    Function to return value of differentiated Legendre polynomial degree n, order m, calculated at angle theta.
+    """
+    return lgd_prime[n][m](th)
 
 def B(r, th, ph, planet = "Uranus"):
     """
