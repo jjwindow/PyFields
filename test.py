@@ -34,14 +34,19 @@ def legendre(n, m, th):
     return lgd[n][m](th)
 
 def B(r, th, ph, planet = "Uranus"):
-
+    """
+    Finds magnetic field strength at given (t, th, ph) co-ords for a given planet. Returns vector
+    of components as a tuple.
+    """
+    # Set args tuple according to planet kwarg
     if planet == "Uranus":
         args = (r, th, ph, a_U, g_U, h_U)
     elif planet == "Neptune":
         pass
     else:
         raise Exception("Keyword argument 'planet' must be 'Uranus' or 'Neptune'.")
-
+    
+    # Field component functions
     def B_rad(r, th, ph, a, g, h):
         """
         Radial magnetic field component. Formula from Connerney (1993).
