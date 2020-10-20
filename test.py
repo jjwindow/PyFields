@@ -16,8 +16,8 @@ import scipy as sp
 ###################### GLOBAL DEFINITIONS ############################
 
 # Uranus Coefficients
-g=np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
-h=np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
+g_U=np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
+h_U=np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
 
 # Legendre (n,m) functions
 lgd = np.array([[lambda theta: 1, lambda theta: 0, lambda theta: 0, lambda theta: 0], 
@@ -64,3 +64,7 @@ def B_phi(a, r, th, ph, g, h):
 
 """just to let you know, B_theta is wrong as i need to take the derivative of lgd but just trying to figure out how to do that, also i
 think the whole thing may be wrong lol as i am getting an error"""
+
+# TESTING
+
+print(B_theta(1, 1.3, np.pi, 0, g_U, h_U))
