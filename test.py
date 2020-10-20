@@ -16,7 +16,7 @@ import scipy as sp
 ###################### GLOBAL DEFINITIONS ############################
 
 # Uranus Coefficients
-g=np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
+g=np.array([[0., 0., 0.], [0.11893, 0.11579, 0.], [-0.06030, -0.12587, 0.00196]], dtype='float64')
 h=np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
 
 # Legendre (n,m) functions
@@ -26,11 +26,21 @@ lgd = np.array([[lambda theta: 1, lambda theta: 0, lambda theta: 0, lambda theta
                     [lambda theta: (5/2)*(np.cos(theta))*((np.cos(theta))**2 - (9/15)), lambda theta: ((5*(3**0.5))/(2**1.5))*(np.sin(theta))*((np.cos(theta))**2 - (3/15)), 
                     lambda theta: ((15**0.5)/2)*(np.cos(theta))*((np.sin(theta))**2), lambda theta: ((5**0.5)/(2**1.5))*((np.sin(theta))**3)]])
 
+lgd_prime = np.array([[lambda theta: 0, lambda theta: 0, lambda theta:0],
+                        [lambda theta: -np.sin(theta), lambda theta: np.cos(theta), lambda theta: 0],
+                        [lambda theta: -(3/2)*np.sin(2*theta), lambda theta: (3**0.5)*((np.cos(theta))**2 - (np.sin(theta))**2), lambda theta: ((3**0.5)/2)*(np.sin(2*theta))]])
+
 def legendre(n, m, th):
     """
     Function to return value of Legendre polynomial degree n, order m, calculated at angle theta.
     """
     return lgd[n][m](th)
+
+def legendre_prime(n, m, th):
+    """
+    Function to return value of differentiated Legendre polynomial degree n, order m, calculated at angle theta.
+    """
+    return lgd_prime[n][m](th)
 
 def B_rad(a, r, th, ph, g, h):
     """
@@ -61,6 +71,3 @@ def B_phi(a, r, th, ph, g, h):
         for m in range(0, n+1):
             B_phi_result += (1/(np.sin(th)))*m*(a/r)**(n+2)*(g[n][m]*np.sin(m*ph) - h[n][m]*np.cos(m*ph))*legendre(n, m, th)
     return B_phi_result
-
-"""just to let you know, B_theta is wrong as i need to take the derivative of lgd but just trying to figure out how to do that, also i
-think the whole thing may be wrong lol as i am getting an error"""
