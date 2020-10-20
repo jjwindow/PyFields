@@ -88,7 +88,7 @@ def B(r, th, ph, planet = "Uranus"):
                 B_phi_result += (1/(np.sin(th)))*m*(a/r)**(n+2)*(g[n][m]*np.sin(m*ph) - h[n][m]*np.cos(m*ph))*legendre(n, m, th)
         return B_phi_result
 
-    return (B_rad(*args), B_theta(*args), B_phi(*args))
+    return np.array([B_rad(*args), B_theta(*args), B_phi(*args)])
 
 """just to let you know, B_theta is wrong as i need to take the derivative of lgd but just trying to figure out how to do that, also i
 think the whole thing may be wrong lol as i am getting an error"""
