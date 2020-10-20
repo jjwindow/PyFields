@@ -74,7 +74,7 @@ def B(r, th, ph, planet = "Uranus"):
         B_theta_result= .0
         for n in range(0,3):
             for m in range(0, n+1):
-                B_theta_result += -(a/r)**(n+2)*(g[n][m]*np.cos(m*ph) + h[n][m]*np.sin(m*ph))*legendre(n, m, th)
+                B_theta_result += -(a/r)**(n+2)*(g[n][m]*np.cos(m*ph) + h[n][m]*np.sin(m*ph))*legendre_prime(n, m, th)
         return B_theta_result
 
     def B_phi(r, th, ph, a, g, h):
