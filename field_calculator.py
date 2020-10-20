@@ -15,11 +15,6 @@ import scipy as sp
 
 ###################### GLOBAL DEFINITIONS ############################
 
-# Uranus Coefficients
-g_U = np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
-h_U = np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
-a_u = 1
-
 # Legendre (n,m) functions
 lgd = np.array([[lambda theta: 1, lambda theta: 0, lambda theta: 0, lambda theta: 0], 
                     [lambda theta: np.cos(theta), lambda theta: np.sin(theta), lambda theta: 0, lambda theta: 0], 
@@ -48,6 +43,12 @@ def B(r, th, ph, planet = "Uranus"):
     Finds magnetic field strength at given (t, th, ph) co-ords for a given planet. Returns vector
     of components as a tuple.
     """
+
+    # Uranus Coefficients
+    g_U = np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]])
+    h_U = np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]])
+    a_U = 1
+
     # Set args tuple according to planet kwarg
     if planet == "Uranus":
         args = (r, th, ph, a_U, g_U, h_U)
@@ -94,4 +95,3 @@ think the whole thing may be wrong lol as i am getting an error"""
 
 # TESTING
 
-print(B_theta(1, 1.3, np.pi, 0, g_U, h_U))
