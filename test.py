@@ -16,8 +16,9 @@ import scipy as sp
 ###################### GLOBAL DEFINITIONS ############################
 
 # Uranus Coefficients
-g=np.array([[0., 0., 0.], [0.11893, 0.11579, 0.], [-0.06030, -0.12587, 0.00196]], dtype='float64')
-h=np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
+g_U =1np.array([[0., 0., 0.], [0.11893, 0.11579, 0], [-0.06030, -0.12587, 0.00196]], dtype='float64')
+h_U = np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]], dtype='float64')
+a_u = 1
 
 # Legendre (n,m) functions
 lgd = np.array([[lambda theta: 1, lambda theta: 0, lambda theta: 0, lambda theta: 0], 
@@ -36,38 +37,55 @@ def legendre(n, m, th):
     """
     return lgd[n][m](th)
 
-def legendre_prime(n, m, th):
+def B(r, th, ph, planet = "Uranus"):
     """
-    Function to return value of differentiated Legendre polynomial degree n, order m, calculated at angle theta.
+    Finds magnetic field strength at given (t, th, ph) co-ords for a given planet. Returns vector
+    of components as a tuple.
     """
-    return lgd_prime[n][m](th)
+    # Set args tuple according to planet kwarg
+    if planet == "Uranus":
+        args = (r, th, ph, a_U, g_U, h_U)
+    elif planet == "Neptune":
+        pass
+    else:
+        raise Exception("Keyword argument 'planet' must be 'Uranus' or 'Neptune'.")
+    
+    # Field component functions
+    def B_rad(r, th, ph, a, g, h):
+        """
+        Radial magnetic field component. Formula from Connerney (1993).
+        """
+        B_rad_result= .0
+        for n in range(0,3):
+            for m in range(0, n+1):
+                B_rad_result += (n+1)*((a/r)**(n+1))*(g[n][m]*np.cos(m*ph) + h[n][m]*np.sin(m*ph))*legendre(n, m, th)
+        return B_rad_result
 
-def B_rad(a, r, th, ph, g, h):
-    """
-    Radial magnetic field component. Formula from Connerney (1993).
-    """
-    B_rad_result= .0
-    for n in range(0,3):
-        for m in range(0, n+1):
-            B_rad_result += (n+1)*((a/r)**(n+1))*(g[n][m]*np.cos(m*ph) + h[n][m]*np.sin(m*ph))*legendre(n, m, th)
-    return B_rad_result
+    def B_theta(r, th, ph, a, g, h):
+        """
+        Latitudinal magnetic field component. Formula from Connerney (1993).
+        """
+        B_theta_result= .0
+        for n in range(0,3):
+            for m in range(0, n+1):
+                B_theta_result += -(a/r)**(n+2)*(g[n][m]*np.cos(m*ph) + h[n][m]*np.sin(m*ph))*legendre(n, m, th)
+        return B_theta_result
 
-def B_theta(a, r, th, ph, g, h):
-    """
-    Latitudinal magnetic field component. Formula from Connerney (1993).
-    """
-    B_theta_result= .0
-    for n in range(0,3):
-        for m in range(0, n+1):
-            B_theta_result += -(a/r)**(n+2)*(g[n][m]*np.cos(m*ph) + h[n][m]*np.sin(m*ph))*legendre(n, m, th)
-    return B_theta_result
+    def B_phi(r, th, ph, a, g, h):
+        """
+        Longitudinal magnetic field component. Formula from Connerney (1993).
+        """
+        B_phi_result= .0
+        for n in range(0,3):
+            for m in range(0, n+1):
+                B_phi_result += (1/(np.sin(th)))*m*(a/r)**(n+2)*(g[n][m]*np.sin(m*ph) - h[n][m]*np.cos(m*ph))*legendre(n, m, th)
+        return B_phi_result
 
-def B_phi(a, r, th, ph, g, h):
-    """
-    Longitudinal magnetic field component. Formula from Connerney (1993).
-    """
-    B_phi_result= .0
-    for n in range(0,3):
-        for m in range(0, n+1):
-            B_phi_result += (1/(np.sin(th)))*m*(a/r)**(n+2)*(g[n][m]*np.sin(m*ph) - h[n][m]*np.cos(m*ph))*legendre(n, m, th)
-    return B_phi_result
+    return (B_rad(*args), B_theta(*args), B_phi(*args))
+
+"""just to let you know, B_theta is wrong as i need to take the derivative of lgd but just trying to figure out how to do that, also i
+think the whole thing may be wrong lol as i am getting an error"""
+
+# TESTING
+
+print(B_theta(1, 1.3, np.pi, 0, g_U, h_U))
