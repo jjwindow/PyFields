@@ -1,17 +1,14 @@
 """
-PyFields test.py
+PyFields field_calculator.py
 
 13.10.2020
 
-Repository placeholder for field tracing module.
+This file contains the explicit field strength calculator using the spherical harmonic expansion
+model of planetary magnetic fields, in the form given in Connerney (1993).
 """
 
 import numpy as np
 import scipy as sp
-
-#th=0
-#lgd=np.array([[1, 0, 0, 0], [np.cos(th), np.sin(th), 0, 0], [(3/2)*((np.cos(th))**2-(1/3)), (3**0.5)*(np.cos(th))*(np.sin(th)), ((3**0.5)/2)*(np.sin(th))**2, 0], [(5/2)*(np.cos(th))*((np.cos(th))**2 - (9/15)), ((5*(3**0.5))/(2**1.5))*(np.sin(th))*((np.cos(th))**2 - (3/15)), ((15**0.5)/2)*(np.cos(th))*((np.sin(th))**2), ((5**0.5)/(2**1.5))*((np.sin(th))**3)]], dtype='float64')
-#print(lgd)
 
 ###################### GLOBAL DEFINITIONS ############################
 
@@ -38,29 +35,24 @@ def legendre_prime(n, m, th):
     """
     return lgd_prime[n][m](th)
 
-def B(r, th, ph, planet = "Uranus"):
+def B(p, field_coeffs):
     """
-    Finds magnetic field strength at given (t, th, ph) co-ords for a given planet. Returns vector
-    of components as a tuple.
+    Finds magnetic field strength at given (t, th, ph) co-ords for a given set of harmonic expansion 
+    coefficients. Returns vector of components as a tuple.
     """
 
-    # Uranus Coefficients
-    g_U = np.array([[0., 0., 0.], [0.11893, 0.11579, 0.], [-0.06030, -0.12587, 0.00196]])
-    h_U = np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]])
-    a_U = 1
-
-    # Neptune Coefficients
-    g_N = np.array([[0., 0., 0., 0.,], [0.09732, 0.03220,, 0., 0.], [0.07448, 0.00664, 0.04499, 0.], [-0.06592, 0.04098, -0.03581, 0.00484]])
-    h_N = np.array([[0., 0., 0., 0.], [0., 0.09889, 0., 0.,], [0., 0.11230, -0.00070, 0.], [0., -0.03669, 0.01791, -0.00770]])
-    a_U = 1
-
-    # Set args tuple according to planet kwarg
-    if planet == "Uranus":
-        args = (r, th, ph, a_U, g_U, h_U)
-    elif planet == "Neptune":
-        pass
-    else:
-        raise Exception("Keyword argument 'planet' must be 'Uranus' or 'Neptune'.")
+    # # Commented out with deprecation of planet kwarg.
+    # # Set args tuple according to planet kwarg
+    # if planet == "Uranus":
+    #     args = (r, th, ph, a_U, g_U, h_U)
+    # elif planet == "Neptune":
+    #     args = (r, th, ph, a_N, g_N, h_N)
+    # else:
+    #     raise Exception("Keyword argument 'planet' must be 'Uranus' or 'Neptune'.")
+    
+    r, th, ph = p[0], p[1], p[2]
+    args = (r, th, ph, *field_coeffs)
+    # breakpoint()
     
     # Field component functions
     def B_rad(r, th, ph, a, g, h):
@@ -95,8 +87,6 @@ def B(r, th, ph, planet = "Uranus"):
 
     return np.array([B_rad(*args), B_theta(*args), B_phi(*args)])
 
-"""just to let you know, B_theta is wrong as i need to take the derivative of lgd but just trying to figure out how to do that, also i
-think the whole thing may be wrong lol as i am getting an error"""
 
 # TESTING
 
