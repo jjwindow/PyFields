@@ -30,7 +30,7 @@ a_D = 1
 
 dipole = (a_D, g_D, h_D)
 
-def field_trace(start_pos, field_coeffs, ds, itnum):
+def field_trace(start_pos, field_coeffs, ds, max_iter):
     """
     Function to trace a field line given a starting positon.
 
@@ -42,7 +42,7 @@ def field_trace(start_pos, field_coeffs, ds, itnum):
                         harmonic expansion. Must be of form (a, g, h).
     ds              -   float; stepsize to trace the field with, taken as a constant for all steps 
                         currently with intention of adding variable step-size to the tracer.
-    itnum           -   int; number of iterations. Need to figure out how to automate this.
+    max_iter        -   int; maximum number of iterations.
 
     RETURNS
     ----------------------------------------------------------------------------------------------------
@@ -54,20 +54,18 @@ def field_trace(start_pos, field_coeffs, ds, itnum):
     B_0 = B(start_pos, field_coeffs)
     p_0 = start_pos
 
-    p_arr, B_arr = np.asarray([np.zeros(3) for _ in range(itnum)]), np.asarray([np.zeros(3) for _ in range(itnum)])
+    p_arr, B_arr = np.asarray([np.zeros(3) for _ in range(max_iter)]), np.asarray([np.zeros(3) for _ in range(max_iter)])
     p_arr[0] = p_0
     B_arr[0] = B_0
 
     it = 1
-    while it < itnum:
+    while (p_0[0] >= 1.) and (it < max_iter):
         p_next, B_next = RK4(p_0, B_0, ds, field_coeffs)
         p_arr[it] = p_next
         B_arr[it] = B_next
         p_0, B_0 = p_next, B_next
         it += 1
 
-    return p_arr, B_arr
-
-p_dip, B_dip = field_trace([1, 0.2, 0.1], dipole, 0.05, 500)
-
-print(p_dip)
+    #return B_arr
+    x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
+    return x, y
