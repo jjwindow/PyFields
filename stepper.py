@@ -7,10 +7,13 @@ calculate the magnetic field vector at every step.
 """
 
 import numpy as np
-from field_calculator import *
+import numba
+from field_calculator_numba import *
 
+# @numba.njit
 def B_mag(B, p):
-    return np.sqrt(B[0]**2 + p[0]**2 * B[1]**2 + (p[0]*np.sin(p[1]))**2 * B[2])
+    magnitude = np.sqrt(B[0]**2 + p[0]**2 * B[1]**2 + (p[0]*np.sin(p[1]))**2 * B[2])
+    return magnitude
 
 def RK4(p_0, B_0, ds, field_coeffs):
     """
@@ -21,7 +24,6 @@ def RK4(p_0, B_0, ds, field_coeffs):
     """
     r, th, ph = p_0[0], p_0[1], p_0[2]
     # Field vector at starting point
-    # B_0 = B(r, th, ph, planet)
     # take unit vector
     v_0 = B_0/B_mag(B_0, p_0)
     

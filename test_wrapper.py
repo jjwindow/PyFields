@@ -7,7 +7,7 @@ First iteration of a wrapper function to test the stepper and field_calculator m
 """
 import numpy as np
 from stepper import *
-from field_calculator import *
+from field_calculator_numba import *
 
 # Uranus Coefficients
 g_U = np.array([[0., 0., 0.], [0.11893, 0.11579, 0.], [-0.06030, -0.12587, 0.00196]])
