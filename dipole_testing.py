@@ -6,7 +6,7 @@ PyFields dipole_testing.py
 Testing model using a dipole
 """
 
-from test_wrapper import *
+from all_funcs import field_trace
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
