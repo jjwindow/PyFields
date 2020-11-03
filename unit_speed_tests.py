@@ -3,6 +3,7 @@
 # import test_wrapper
 # import stepper
 import all_funcs
+from dipole_testing import multilines
 import numpy as np
 import time
 
@@ -46,6 +47,19 @@ def wrapper_timer(numits):
 
     print("Wrapper TIME: ", t/numits)
 
+def functimer(func, args, n):
+    """
+    pass args as tuple to be unpacked.
+    """
+    t = 0
+    for _ in range(n):
+        t_0 = time.time()
+        func(*args)
+        t += time.time() - t_0
+
+    print(f"{func.__name__} Time ({n} run avg):\n{t/n}")
+
+functimer(multilines, (50,), 5)
 # B_timer("RK4", 100000)
 # B_timer("B", 100000)
 # B_timer("B_numba", 100000)

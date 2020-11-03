@@ -6,11 +6,9 @@ PyFields dipole_testing.py
 Testing model using a dipole
 """
 
-from all_funcs import field_trace
+from all_funcs import field_trace, dipole
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
-import pandas as pd
 
 #pstart_1 = [1., 1.67, 0.1]
 # pstart_2 = [1., 0.15, 0.1]
@@ -30,13 +28,15 @@ import pandas as pd
 # plt.title("Test Dipole")
 #plt.show()
 
-th_values = np.linspace((-np.pi)/2, (np.pi)/2, 50)
-for th in th_values:
-    if th==0 or th==np.pi or th==2*np.pi:
-        pass
-    else:
-         x, y = field_trace([1., th, 0.1], dipole, 0.01, 100000)
-         plt.plot(x, y, color = 'b')
-         print(th)
+def multilines(num):
+    th_values = np.linspace((-np.pi)/2, (np.pi)/2, num)
+    for th in th_values:
+        if th==0 or th==np.pi or th==2*np.pi:
+            pass
+        else:
+            x, y = field_trace([1., th, 0.1], dipole, 0.01, 100000)
+            plt.plot(x, y, color = 'b')
+            #  print(th)
 
+multilines(50)
 plt.show()
