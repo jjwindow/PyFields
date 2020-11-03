@@ -12,26 +12,6 @@ model of planetary magnetic fields, in the form given in Connerney (1993).
 import numpy as np
 import numba
 
-###################### GLOBAL DEFINITIONS ############################
-
-# Legendre (n,m) functions
-
-# def legendre(n, m, th):
-#     """
-#     Function to return value of Legendre polynomial degree n, order m, calculated at angle theta.
-#     """
-#     f = lgd[n][m]
-#     out = f(th)
-#     return out
-
-# def legendre_prime(n, m, th):
-#     """
-#     Function to return value of differentiated Legendre polynomial degree n, order m, calculated at angle theta.
-#     """
-#     f = lgd[n][m]
-#     out = f(th)
-#     return out
-
 # Field component functions
 @numba.njit
 def B_rad(r, th, ph, a, g, h):

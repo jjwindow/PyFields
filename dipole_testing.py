@@ -1,4 +1,4 @@
-from test_wrapper import *
+from all_funcs import field_trace, dipole
 import matplotlib.pyplot as plt
 
 pstart_1 = [1., 0.1, 0.1]

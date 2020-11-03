@@ -30,7 +30,7 @@ a_D = 1
 
 dipole = (a_D, g_D, h_D)
 
-def field_trace(start_pos, field_coeffs, ds, max_iter):
+def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
     """
     Function to trace a field line given a starting positon.
 
@@ -66,6 +66,8 @@ def field_trace(start_pos, field_coeffs, ds, max_iter):
         p_0, B_0 = p_next, B_next
         it += 1
 
-    #return B_arr
-    x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
-    return x, y
+    if axes == "Cartesian":
+        x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
+        return x, y
+    else:
+        return p_arr, B_arr
