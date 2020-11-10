@@ -38,5 +38,16 @@ def multilines(num):
             plt.plot(x, y, color = 'b')
             #  print(th)
 
-multilines(50)
+# multilines(50)
+# plt.show()
+
+# Want to observe uncertainty - use two field lines reflected in theta, look at difference between origin and ends.
+th_0 = 0.3
+x_1, y_1 = field_trace([1., th_0, 0.], dipole, 0.01, 100000)
+x_2, y_2 = field_trace([1., np.pi - th_0, 0.], dipole, 0.01, 100000)
+plt.plot(x_1, y_1, label="Northern fieldline")
+plt.plot(x_2, y_2, label="Southern fieldline")
+plt.xlabel("x scaled by planetary radius")
+plt.ylabel("y scaled by planetary radius")
+plt.legend()
 plt.show()
