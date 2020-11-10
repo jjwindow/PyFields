@@ -9,6 +9,7 @@ Testing model using a dipole
 from all_funcs import field_trace, dipole
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 #pstart_1 = [1., 1.67, 0.1]
 # pstart_2 = [1., 0.15, 0.1]
@@ -37,18 +38,19 @@ def multilines(num, th_min = 0, th_max = np.pi, coeffs = dipole, ds = 0.01, maxi
     MOVE TO ALL_FUNCS EVENTUALLY
     """
     th_values = np.linspace(th_min, th_max, num)
-    for th in th_values:
-        if th==0 or th==np.pi or th==2*np.pi:
-            pass
-        else:
-            x, y = field_trace([1., th, 0.], coeffs, ds, maxits)
-            if y[0] > y[-1]:
-                colour = 'r'
+    with tqdm(total = len(th_values), desc=f"THETA {round(th_min/np.pi, 2)}*pi TO {round(th_max/np.pi, 2)}*pi:") as bar:
+        for th in th_values:
+            if th==0 or th==np.pi or th==2*np.pi:
+                pass
             else:
-                colour = 'b'
-            plt.plot(x, y, color = colour)
-            #  print(th)
-
+                x, y = field_trace([1., th, 0.], coeffs, ds, maxits)
+                if y[0] > y[-1]:
+                    colour = 'r'
+                else:
+                    colour = 'b'
+                plt.plot(x, y, color = colour)
+                #  print(th)
+            bar.update()
 # multilines(50)
 # plt.show()
 
