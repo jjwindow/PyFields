@@ -8,6 +8,7 @@ All modules in PyFields combined into one file to improve execution time.
 
 import numpy as np
 import numba
+from tqdm import tqdm
 
 ######################### GLOBAL DEFINITIONS #############################
 
@@ -189,3 +190,26 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         return x, y
     else:
         return p_arr, B_arr
+
+def multilines(num, th_min = 0, th_max = np.pi, coeffs = dipole, ds = 0.01, maxits = 100000):
+    """
+    Plots 'num' (int) field lines for equally spaced theta values between th_min and th_max.
+    Field lines calculated using field coefficients given by coeffs (tuple), stepsize ds (float),
+    and terminating after maxits (int). Use plt.show() to display plot after calling.
+
+    MOVE TO ALL_FUNCS EVENTUALLY
+    """
+    th_values = np.linspace(th_min, th_max, num)
+    with tqdm(total = len(th_values), desc=f"THETA {round(th_min/np.pi, 2)}*pi TO {round(th_max/np.pi, 2)}*pi") as bar:
+        for th in th_values:
+            if th==0 or th==np.pi or th==2*np.pi:
+                pass
+            else:
+                x, y = field_trace([1., th, 0.], coeffs, ds, maxits)
+                if y[0] > y[-1]:
+                    colour = 'r'
+                else:
+                    colour = 'b'
+                plt.plot(x, y, color = colour)
+                #  print(th)
+            bar.update()
