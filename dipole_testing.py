@@ -29,7 +29,7 @@ import numpy as np
 #plt.show()
 
 def multilines(num):
-    th_values = np.linspace((-np.pi)/2, (np.pi)/2, num)
+    th_values = np.linspace(0, 2*(np.pi), num)
     for th in th_values:
         if th==0 or th==np.pi or th==2*np.pi:
             pass
