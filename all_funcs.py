@@ -182,10 +182,8 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         B_arr[it] = B_next
         p_0, B_0 = p_next, B_next
         it += 1
-    print(f"BEFORE: {len(p_arr)}")
     p_arr = np.asarray([p for p in p_arr if np.any(p)])
     B_arr = np.asarray([b for b in B_arr if np.any(b)])
-    print(f"AFTER: {len(p_arr)}")
     if axes == "Cartesian":
         x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
         return x, y
