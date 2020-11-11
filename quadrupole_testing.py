@@ -28,9 +28,9 @@ plt.show()
 
 # a=np.empty(50)
 # a.fill(np.pi)
-# print(a)
 
 # b = abs(a - th_values)
 # print(b)
+
 # precision = 6
 # print(Counter(map(round, b, [precision for _ in b])))
