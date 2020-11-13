@@ -178,16 +178,12 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
     B_arr[0] = B_0
 
     it = 1
-    iter_flag = False
     while (p_0[0] >= 1.) and (it < max_iter):
         p_next, B_next = RK4(p_0, B_0, ds, field_coeffs)
         p_arr[it] = p_next
         B_arr[it] = B_next
         p_0, B_0 = p_next, B_next
         it += 1
-        iter_flag = (it == max_iter)
-    if iter_flag:
-        return None
     p_arr = np.asarray([p for p in p_arr if np.any(p)])
     B_arr = np.asarray([b for b in B_arr if np.any(b)])
     if axes == "Cartesian":
@@ -196,7 +192,7 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
     else:
         return p_arr, B_arr
 
-def multilines(num, th_min = -np.pi/2, th_max = np.pi/2, coeffs = dipole, ds = 0.01, maxits = 100000):
+def multilines(num, th_min = 0, th_max = np.pi, coeffs = dipole, ds = 0.01, maxits = 100000):
     """
     Plots 'num' (int) field lines for equally spaced theta values between th_min and th_max.
     Field lines calculated using field coefficients given by coeffs (tuple), stepsize ds (float),
@@ -210,13 +206,11 @@ def multilines(num, th_min = -np.pi/2, th_max = np.pi/2, coeffs = dipole, ds = 0
             if th==0 or th==np.pi or th==2*np.pi:
                 pass
             else:
-                field = field_trace([1., th, 0.], coeffs, ds, maxits)
-                if field is not None:
-                    (x, y) = field
-                    if y[0] > y[-1]:
-                        colour = 'r'
-                    else:
-                        colour = 'b'
-                    plt.plot(x, y, color = colour)
-                    #  print(th)
+                x, y = field_trace([1., th, 0.], coeffs, ds, maxits)
+                if y[0] > y[-1]:
+                    colour = 'r'
+                else:
+                    colour = 'b'
+                plt.plot(x, y, color = colour)
+                #  print(th)
             bar.update()

@@ -43,22 +43,22 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
     th_returns = np.array(th_returns)
 
     deltas = []
+    lengths = []
     for i, th in enumerate(th_values):
         start_pos = [1., th, 0.]
         field = field_trace(start_pos, dipole, ds, max_iter, axes=None)
         if field is not None:
             (p_arr, B_arr) = field
             th_final = p_arr[-1][1]
+            lengths.append(len(p_arr))
             deltas.append(abs(th_final-th_returns[i]))
         else:
             th_values[i] = np.nan
     th_values = [th for th in th_values if not np.isnan(th)]    
     deltas = np.array(deltas)
-      
-    # print("angle at which dipole lines leave surface=", th_values)
-    # print("angle at which dipole lines enter surface=", th_returns)
-    # print("angular discrepancies=", deltas)
-    return th_values, th_returns, deltas
+    lengths = np.array(lengths)
+
+    return th_values, th_returns, deltas, lengths
 
 fpath = 'dipole_errors_0.01.npy'
 
@@ -69,36 +69,49 @@ so you can just run this file and it will access the data straight away. :)
 """
 ### RUN THIS BLOCK TO GENERATE DATA AND SAVE IT ###
 ### DO THIS ONCE THEN ACCESS SAVED FILE TO SAVE TIME ###
-# th_values, th_returns, deltas = dipole_error(50, -np.pi/2, np.pi/2, 0.01, 100000)
+# th_values, th_returns, deltas, lengths = dipole_error(50, -np.pi/2, np.pi/2, 0.01, 100000)
 # with open(fpath, 'wb') as f:
-#     np.save(f, [th_values, deltas])
+#     np.save(f, [th_values, th_returns, deltas, lengths])
 
 ### RUN THIS BLOCK TO RETRIEVE SAVED DATA ###
 with open(fpath, 'rb') as f:
     th_deltas = np.load(f, allow_pickle=True)
-    th_values, deltas = th_deltas[0], th_deltas[1]
+    th_values, th_returns, deltas, lengths = th_deltas
 
 th_gap = th_values[1]-th_values[0]
 mean = deltas.mean()
 print("Mean Error (radians) = ", mean)
 
-plt.plot(th_values, deltas/th_gap, label="Step Size = 0.01")
-plt.plot(th_values, [mean/th_gap for _ in th_values], label="Mean")
+#################### PLOTTING #######################
+
 params = {
- 'axes.labelsize': 16,
+ 'axes.labelsize': 14,
    'font.size': 14,
    'legend.fontsize': 14,
-   'xtick.labelsize': 16,
-   'ytick.labelsize': 16,
-   'figure.figsize': [15,10]
+   'xtick.labelsize': 12,
+   'ytick.labelsize': 12,
+   'figure.figsize': [8,6]
    }
+l = int(len(th_values)/2)
+
+# fig, ax = plt.subplots(2,1, sharex=True)
+# ax[0].plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
+# ax[0].plot(th_values[l:], [mean/th_gap for _ in th_values[l:]], label="Mean")
+# ax[0].set_ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium', labelpad = 17)
+# ax[0].legend()
+# ax[1].plot(th_values[l:], lengths[l:], label = "Step Size = 0.01")
+# ax[1].set_ylabel("Fieldline Length (no. points)", fontsize='medium')
+# ax[1].set_xlabel(r"$\theta$ (rad)", fontsize = 'medium')
+# plt.legend()
+# plt.rcParams.update(params)
+# plt.show()
 plt.rcParams.update(params)
-plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
-plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
+plt.plot(lengths[l:], deltas[l:]/th_gap, label = "Step Size = 0.01")
+plt.xscale('log')
+plt.xlabel("Log(Fieldline Length) [num. points]")
+plt.ylabel(r"(Angular Error)/$\Delta\theta$")
 plt.legend()
 plt.show()
-
-
 ### Want to observe uncertainty - use two field lines reflected in theta, look at difference between origin and ends.
 # th_0 = 0.3
 # x_1, y_1 = field_trace([1., th_0, 0.], dipole, 0.01, 100000)
