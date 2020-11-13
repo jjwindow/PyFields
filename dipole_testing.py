@@ -10,7 +10,6 @@ from all_funcs import *
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-
 ########################## DIPOLE TEST ###############################
 
 # multilines(50)
@@ -61,7 +60,24 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
     # print("angular discrepancies=", deltas)
     return th_values, th_returns, deltas
 
-th_values, th_returns, deltas = dipole_error(50, -np.pi/2, np.pi/2, 0.01, 100000)
+fpath = 'dipole_errors_0.01.npy'
+
+"""
+Below is how you save and load numpy arrays. If you're reading this, then you don't have
+to run the dipole_error function again! The file will have pulled into your local respository
+so you can just run this file and it will access the data straight away. :)
+"""
+### RUN THIS BLOCK TO GENERATE DATA AND SAVE IT ###
+### DO THIS ONCE THEN ACCESS SAVED FILE TO SAVE TIME ###
+# th_values, th_returns, deltas = dipole_error(50, -np.pi/2, np.pi/2, 0.01, 100000)
+# with open(fpath, 'wb') as f:
+#     np.save(f, [th_values, deltas])
+
+### RUN THIS BLOCK TO RETRIEVE SAVED DATA ###
+with open(fpath, 'rb') as f:
+    th_deltas = np.load(f, allow_pickle=True)
+    th_values, deltas = th_deltas[0], th_deltas[1]
+
 th_gap = th_values[1]-th_values[0]
 mean = deltas.mean()
 print("Mean Error (radians) = ", mean)
@@ -77,8 +93,8 @@ params = {
    'figure.figsize': [15,10]
    }
 plt.rcParams.update(params)
-plt.xlabel(r"$\theta$ (rad)")
-plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$")
+plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
+plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
 plt.legend()
 plt.show()
 
