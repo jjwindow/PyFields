@@ -185,15 +185,21 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         p_0, B_0 = p_next, B_next
         it += 1
         iter_flag = (it == max_iter)
-    if iter_flag:
+
+    if (iter_flag):
         return None
+
     p_arr = np.asarray([p for p in p_arr if np.any(p)])
     B_arr = np.asarray([b for b in B_arr if np.any(b)])
-    if axes == "Cartesian":
-        x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
-        return x, y
+
+    if ((len(p_arr) < 3) or iter_flag):
+        return None
     else:
-        return p_arr, B_arr
+        if axes == "Cartesian":
+            x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
+            return x, y
+        else:
+            return p_arr, B_arr
 
 def multiline_plot(num, th_min = 0, th_max = np.pi, coeffs = dipole, ds = 0.01, maxits = 100000):
     """

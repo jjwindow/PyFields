@@ -8,6 +8,7 @@ Testing model using a dipole
 
 from all_funcs import *
 import matplotlib.pyplot as plt
+import matplotlib as mat
 import numpy as np
 from tqdm import tqdm
 ########################## DIPOLE TEST ###############################
@@ -44,16 +45,18 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
 
     deltas = []
     lengths = []
-    for i, th in enumerate(th_values):
-        start_pos = [1., th, 0.]
-        field = field_trace(start_pos, dipole, ds, max_iter, axes=None)
-        if field is not None:
-            (p_arr, B_arr) = field
-            th_final = p_arr[-1][1]
-            lengths.append(len(p_arr))
-            deltas.append(abs(th_final-th_returns[i]))
-        else:
-            th_values[i] = np.nan
+    with tqdm(total=len(th_values), desc="Tracing Fields...") as bar:
+        for i, th in enumerate(th_values):
+            start_pos = [1., th, 0.]
+            field = field_trace(start_pos, dipole, ds, max_iter, axes=None)
+            if field is not None:
+                (p_arr, B_arr) = field
+                th_final = p_arr[-1][1]
+                lengths.append(len(p_arr))
+                deltas.append(abs(th_final-th_returns[i]))
+            else:
+                th_values[i] = np.nan
+            bar.update()
     th_values = [th for th in th_values if not np.isnan(th)]    
     deltas = np.array(deltas)
     lengths = np.array(lengths)
@@ -105,13 +108,22 @@ l = int(len(th_values)/2)
 # plt.legend()
 # plt.rcParams.update(params)
 # plt.show()
-plt.rcParams.update(params)
-plt.plot(lengths[l:], deltas[l:]/th_gap, label = "Step Size = 0.01")
-plt.xscale('log')
-plt.xlabel("Log(Fieldline Length) [num. points]")
-plt.ylabel(r"(Angular Error)/$\Delta\theta$")
+
+plt.plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
+plt.plot(th_values[l:], [mean/th_gap for _ in th_values[l:]], label="Mean")
+plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
+plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
 plt.legend()
 plt.show()
+
+# plt.rcParams.update(params)
+# plt.plot(lengths[l:], deltas[l:]/th_gap, label = "Step Size = 0.01")
+# plt.xscale('log')
+# plt.xlabel("Log(Fieldline Length) [num. points]")
+# plt.ylabel(r"(Angular Error)/$\Delta\theta$")
+# plt.legend()
+# plt.show()
+
 ### Want to observe uncertainty - use two field lines reflected in theta, look at difference between origin and ends.
 # th_0 = 0.3
 # x_1, y_1 = field_trace([1., th_0, 0.], dipole, 0.01, 100000)
@@ -132,19 +144,23 @@ plt.show()
 # plt.legend()
 # plt.show()
 
-def analytic_dipole(numlines):
-    theta_start = np.linspace(-np.pi/2, np.pi/2, numlines)
-    def x(th, th_i):
-        return np.sin(th)**2 * np.cos(th) / np.sin(th_i)**2
+def analytic_dipole_plot(numlines):
+    theta_start = np.linspace(0, np.pi/2, numlines)
     def y(th, th_i):
+        return np.sin(th)**2 * np.cos(th) / np.sin(th_i)**2
+    def x(th, th_i):
         return np.sin(th)**3 / np.sin(th_i)**2
 
-    for th_i in theta_start:
+    for th_i in theta_start[1:]:
         coords = [(x(th, th_i), y(th, th_i)) for th in np.linspace(th_i, np.pi - th_i, 200)]
-        x, y = map(list, zip(*coords))
-        plt.plot(x, y)
+        x_arr, y_arr = map(list, zip(*coords))
+        plt.plot(x_arr, y_arr, '-.', color = 'purple')
     
 
+# multiline_plot(25, th_max = np.pi/2)
+# analytic_dipole_plot(25)
+# plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),mat.lines.Line2D([0,0], [1,1], color = 'purple')), ('Traced Dipole, ds = 0.01','Analytical Dipole'))
+# plt.show()
         
 
 
