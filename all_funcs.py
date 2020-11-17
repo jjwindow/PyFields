@@ -34,6 +34,13 @@ a_D = 1
 
 dipole = (a_D, g_D, h_D)
 
+# Quadrupole coefficients
+g_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.]])
+h_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.]])
+a_Q = 1
+
+quadrupole = (a_Q, g_Q, h_Q)
+
 ########################## FIELD CALCULATOR ###############################
 # Field component functions
 @numba.njit
@@ -189,8 +196,8 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
     if (iter_flag):
         return None
 
-    p_arr = np.asarray([p for p in p_arr if np.any(p)])
-    B_arr = np.asarray([b for b in B_arr if np.any(b)])
+    p_arr = np.asarray([p for p in p_arr if np.any(p)])[:-1]
+    B_arr = np.asarray([b for b in B_arr if np.any(b)])[:-1]
 
     if ((len(p_arr) < 3) or iter_flag):
         return None
@@ -201,15 +208,13 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         else:
             return p_arr, B_arr
 
-def multiline_plot(num, th_min = 0, th_max = np.pi, coeffs = dipole, ds = 0.01, maxits = 100000):
+def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01, maxits = 100000):
     """
     Plots 'num' (int) field lines for equally spaced theta values between th_min and th_max.
     Field lines calculated using field coefficients given by coeffs (tuple), stepsize ds (float),
     and terminating after maxits (int). Use plt.show() to display plot after calling.
-
-    MOVE TO ALL_FUNCS EVENTUALLY
     """
-    th_values = np.linspace(th_min, th_max, num)
+    th_values = np.linspace(th_min, th_max, num, endpoint=False)
     with tqdm(total = len(th_values), desc=f"THETA {round(th_min/np.pi, 2)}*pi TO {round(th_max/np.pi, 2)}*pi") as bar:
         for th in th_values:
             if th==0 or th==np.pi or th==2*np.pi:

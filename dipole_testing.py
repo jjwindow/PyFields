@@ -11,18 +11,20 @@ import matplotlib.pyplot as plt
 import matplotlib as mat
 import numpy as np
 from tqdm import tqdm
+
 ########################## DIPOLE TEST ###############################
 
-# multilines(50)
+# multiline_plot(50)
 # params = {
 #  'axes.labelsize': 14,
-#    'font.size': 18,
-#    'legend.fontsize': 16,
-#    'xtick.labelsize': 14,
-#    'ytick.labelsize': 14,
-#    'figure.figsize': [15,10]
+#    'font.size': 14,
+#    'legend.fontsize': 14,
+#    'xtick.labelsize': 12,
+#    'ytick.labelsize': 12,
+#    'figure.figsize': [8,6]
 #    }
 # plt.rcParams.update(params)
+# plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),), ('Traced Dipole, ds = 0.01',))
 # plt.xlabel("Distance in x (Scaled by Planetary Radius)")
 # plt.ylabel("Distance in y (Scaled by Planetary Radius)")
 # plt.show()
@@ -45,6 +47,7 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
 
     deltas = []
     lengths = []
+    th_finals = []
     with tqdm(total=len(th_values), desc="Tracing Fields...") as bar:
         for i, th in enumerate(th_values):
             start_pos = [1., th, 0.]
@@ -52,16 +55,28 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
             if field is not None:
                 (p_arr, B_arr) = field
                 th_final = p_arr[-1][1]
+                th_finals.append(th_final)
                 lengths.append(len(p_arr))
                 deltas.append(abs(th_final-th_returns[i]))
             else:
                 th_values[i] = np.nan
+                th_finals.append(np.nan)
+                lengths.append(np.nan)
+                deltas.append(np.nan)
             bar.update()
-    th_values = [th for th in th_values if not np.isnan(th)]    
+       
     deltas = np.array(deltas)
     lengths = np.array(lengths)
 
+    print("theta returns =", th_returns[-20:])
+    print("theta finals =", th_finals[-20:])
+    print("deltas =", deltas[-20:])
+    print("theta values=", th_values[-20:])
+    print(len(th_returns)==len(th_finals))
+
     return th_values, th_returns, deltas, lengths
+    
+
 
 fpath = 'dipole_errors_0.01.npy'
 
@@ -81,9 +96,17 @@ with open(fpath, 'rb') as f:
     th_deltas = np.load(f, allow_pickle=True)
     th_values, th_returns, deltas, lengths = th_deltas
 
+#################### MEAN VALUES #######################
+th_values = [th for th in th_values if not np.isnan(th)]
+th_returns = [th for th in th_returns if not np.isnan(th)]
+deltas = [d for d in deltas if not np.isnan(d)]
+lengths = [l for l in lengths if not np.isnan(l)]
 th_gap = th_values[1]-th_values[0]
-mean = deltas.mean()
+print("theta gap=", th_gap)
+mean = np.mean(deltas)
 print("Mean Error (radians) = ", mean)
+mean_gap = mean/th_gap
+print(r"Mean Error / $\Delta\theta$ =", mean_gap)
 
 #################### PLOTTING #######################
 
@@ -95,6 +118,8 @@ params = {
    'ytick.labelsize': 12,
    'figure.figsize': [8,6]
    }
+plt.rcParams.update(params)
+
 l = int(len(th_values)/2)
 
 # fig, ax = plt.subplots(2,1, sharex=True)
@@ -109,8 +134,15 @@ l = int(len(th_values)/2)
 # plt.rcParams.update(params)
 # plt.show()
 
+# plt.plot(th_values[l:], deltas[l:], label="Step Size = 0.01")
+# plt.plot(th_values[l:], [mean for _ in th_values[l:]], label="Mean")
+# plt.ylabel("Angular Discrepancy", fontsize = 'medium')
+# plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
+# plt.legend()
+# plt.show()
+
 plt.plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
-plt.plot(th_values[l:], [mean/th_gap for _ in th_values[l:]], label="Mean")
+plt.plot(th_values[l:], [mean_gap for _ in th_values[l:]], label="Mean")
 plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
 plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
 plt.legend()
@@ -144,6 +176,8 @@ plt.show()
 # plt.legend()
 # plt.show()
 
+
+#################### ANALYTICAL VS PLOTTED #######################
 def analytic_dipole_plot(numlines):
     theta_start = np.linspace(0, np.pi/2, numlines)
     def y(th, th_i):
