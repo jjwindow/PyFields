@@ -132,6 +132,20 @@ plt.show()
 # plt.legend()
 # plt.show()
 
+def analytic_dipole(numlines):
+    theta_start = np.linspace(-np.pi/2, np.pi/2, numlines)
+    def x(th, th_i):
+        return np.sin(th)**2 * np.cos(th) / np.sin(th_i)**2
+    def y(th, th_i):
+        return np.sin(th)**3 / np.sin(th_i)**2
+
+    for th_i in theta_start:
+        coords = [(x(th, th_i), y(th, th_i)) for th in np.linspace(th_i, np.pi - th_i, 200)]
+        x, y = map(list, zip(*coords))
+        plt.plot(x, y)
+    
+
+        
 
 
 
