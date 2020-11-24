@@ -141,12 +141,13 @@ l = int(len(th_values)/2)
 # plt.legend()
 # plt.show()
 
-plt.plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
-plt.plot(th_values[l:], [mean_gap for _ in th_values[l:]], label="Mean")
-plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
-plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
-plt.legend()
-plt.show()
+"""Dipole scaled errors vs latitude, with mean """
+# plt.plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
+# plt.plot(th_values[l:], [mean_gap for _ in th_values[l:]], label="Mean")
+# plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
+# plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
+# plt.legend()
+# plt.show()
 
 # plt.rcParams.update(params)
 # plt.plot(lengths[l:], deltas[l:]/th_gap, label = "Step Size = 0.01")
@@ -185,16 +186,59 @@ def analytic_dipole_plot(numlines):
     def x(th, th_i):
         return np.sin(th)**3 / np.sin(th_i)**2
 
-    for th_i in theta_start[1:]:
+    for th_i in theta_start:
         coords = [(x(th, th_i), y(th, th_i)) for th in np.linspace(th_i, np.pi - th_i, 200)]
         x_arr, y_arr = map(list, zip(*coords))
-        plt.plot(x_arr, y_arr, '-.', color = 'purple')
+        plt.plot(x_arr, y_arr, '-.', color = 'k')
+
+def _analytic_field_point_(th_i, th, field = 'dipole'):
+    """
+    Calculates (x,y) coordinate at th for a field line whith starting coordinate (t, th, ph) = (1, th, 0).
+    Also returns rflag, which is True if r <= 1 and false otherwise. This is to terminate calculation.
+    """
+    if field == 'dipole':
+        def x(th_i, th):
+            return ((np.sin(th)**3)/np.sin(th_i)**2)
+        def y(th_i, th):
+            return ((np.sin(th)**2 * np.cos(th))/np.sin(th_i)**2)
+    else:
+        def x(th_i, th):
+            return (np.sin(th_i)**2 * np.cos(th_i))**(-0.5) * np.sqrt(np.sin(th)**2 * np.cos(th)) * np.sin(th)
+        def y(th_i, th):
+            return (np.sin(th_i)**2 * np.cos(th_i))**(-0.5) * np.sqrt(np.sin(th)**2 * np.cos(th)) * np.cos(th)
     
+    x, y = x(th_i, th), y(th_i, th)
+    rflag = (round((x**2 + y**2), 6) < 1)        # Boolean flag - is radial coord < 1?
+    # print(rflag)
+    return x, y, rflag
+    
+def analytic_field_line(th_i, ds, field = 'dipole'):
+    th_range = np.arange(th_i, 2*np.pi, step=ds)
+    # th_i_range = np.array([th_i for _ in th_range])
+    # x_y_coords = [(x, y) for x, y, rflag in [_analytic_field_point_(th_i, th) for th_i, th in zip(th_i_range, th_range)] if not rflag]
+    x_y_coords = []
+    j = 0
+    rflag = False
+    # breakpoint()
+    while (not rflag) and (j < len(th_range)):
+        x, y, rflag = _analytic_field_point_(th_i, th_range[j], field)
+        x_y_coords.append((x, y))
+        j += 1
+    # breakpoint()
+    return x_y_coords
+
+def _analytic_field_plot(th_min, th_max, numlines, ds, field = 'dipole'):
+    th_start = np.linspace(th_min, th_max, numlines, endpoint=False)
+    for th_i in th_start:
+        coords = analytic_field_line(th_i, ds, field)
+        x_arr, y_arr = map(list, zip(*coords))
+        plt.plot(x_arr, y_arr, '-', color = 'k')
 
 # multiline_plot(25, th_max = np.pi/2)
-# analytic_dipole_plot(25)
-# plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),mat.lines.Line2D([0,0], [1,1], color = 'purple')), ('Traced Dipole, ds = 0.01','Analytical Dipole'))
-# plt.show()
+# ls=(0, (3, 10, 1, 10, 1, 10))
+_analytic_field_plot(0, np.pi/2, 25, 0.001, 'quad')
+plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),mat.lines.Line2D([0,0], [1,1], color = 'k')), ('Traced Dipole, ds = 0.01','Analytical Dipole'))
+plt.show()
         
 
 

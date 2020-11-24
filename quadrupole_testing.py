@@ -7,21 +7,21 @@ from collections import Counter
 
 ########################## QUADRUPOLE TEST ###############################
 
-# params = {
-#  'axes.labelsize': 14,
-#    'font.size': 14,
-#    'legend.fontsize': 14,
-#    'xtick.labelsize': 12,
-#    'ytick.labelsize': 12,
-#    'figure.figsize': [8,6]
-#    }
-# plt.rcParams.update(params)
-# multiline_plot(50, coeffs=quadrupole)
-# plt.xlabel("Distance in x (Scaled by Planetary Radius)")
-# plt.ylabel("Distance in y (Scaled by Planetary Radius)")
-# #plt.annotate("Traced Quadropole, ds=0.01", xy=(1,1))
-# plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),mat.lines.Line2D([0,0], [1,1], color = 'b')), ('Southbound Line','Northbound Line'))
-# plt.show()
+params = {
+ 'axes.labelsize': 14,
+   'font.size': 14,
+   'legend.fontsize': 14,
+   'xtick.labelsize': 12,
+   'ytick.labelsize': 12,
+   'figure.figsize': [8,6]
+   }
+plt.rcParams.update(params)
+multiline_plot(50, coeffs=quadrupole, ds=0.05)
+plt.xlabel("Distance in x (Scaled by Planetary Radius)")
+plt.ylabel("Distance in y (Scaled by Planetary Radius)")
+#plt.annotate("Traced Quadropole, ds=0.01", xy=(1,1))
+plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),mat.lines.Line2D([0,0], [1,1], color = 'b')), ('Southbound Line','Northbound Line'))
+plt.show()
 
 
 ########################## THETA SYMMETRY TESTING ##########################
@@ -41,7 +41,7 @@ from collections import Counter
 ########################## ERROR CALCULATION ##########################
 
 def quad_error(num, th_min, th_max, ds, max_iter):
-    th_values = np.linspace(th_min, th_max, num)
+    th_values = np.linspace(th_min, th_max, num, endpoint=False)
     th_returns = []
     for th in th_values:
         if ((th >= 0.0) and  (th <= np.pi/2)):
@@ -69,6 +69,7 @@ def quad_error(num, th_min, th_max, ds, max_iter):
             deltas.append(np.nan)
             lengths.append(np.nan)
             th_values[i] = np.nan
+            th_returns[i] = np.nan
             th_finals.append(np.nan)
         else:
             start_pos = [1., th, 0.]
@@ -81,6 +82,7 @@ def quad_error(num, th_min, th_max, ds, max_iter):
                 deltas.append(abs(th_final-th_returns[i]))
             else:
                 th_values[i] = np.nan
+                th_returns[i] = np.nan
                 th_finals.append(np.nan)
                 lengths.append(np.nan)
                 deltas.append(np.nan)   
@@ -89,13 +91,7 @@ def quad_error(num, th_min, th_max, ds, max_iter):
     deltas = np.array(deltas)
     lengths = np.array(lengths)
 
-    print("theta returns =", th_returns)
-    print("theta finals =", th_finals)
-    print("deltas =", deltas)
-    print("theta values=", th_values)
-    print(len(th_returns)==len(th_finals))
-
-    return th_values, th_returns, deltas, lengths
+    return th_values, th_returns, th_finals, deltas, lengths
 
 fpath = 'quadrupole_errors_0.01.npy'
 
@@ -106,21 +102,24 @@ so you can just run this file and it will access the data straight away. :)
 """
 ### RUN THIS BLOCK TO GENERATE DATA AND SAVE IT ###
 ### DO THIS ONCE THEN ACCESS SAVED FILE TO SAVE TIME ###
-th_values, th_returns, deltas, lengths = quad_error(50, 0, 2*np.pi, 0.01, 100000)
-with open(fpath, 'wb') as f:
-    np.save(f, [th_values, th_returns, deltas, lengths])
+# th_values, th_returns, th_finals, deltas, lengths = quad_error(50, 0, 2*np.pi, 0.01, 100000)
+# with open(fpath, 'wb') as f:
+#     np.save(f, [th_values, th_returns, deltas, lengths])
 
 ### RUN THIS BLOCK TO RETRIEVE SAVED DATA ###
 with open(fpath, 'rb') as f:
     th_deltas = np.load(f, allow_pickle=True)
     th_values, th_returns, deltas, lengths = th_deltas
 
+p_arr, B_arr = field_trace([1., 0.12566370614359174, 0.], quadrupole, 0.01, 100000, None)
+print(f"LOOK HERE {p_arr[-1][1]}")
 
 
 ########################## PLOTTING ##########################
 
 th_values = [th for th in th_values if not np.isnan(th)]
 th_returns = [th for th in th_returns if not np.isnan(th)]
+th_finals = [th for th in th_finals if not np.isnan(th)]
 deltas = [d for d in deltas if not np.isnan(d)]
 lengths = [l for l in lengths if not np.isnan(l)]
 th_gap = th_values[1]-th_values[0]
@@ -130,6 +129,11 @@ print("Mean Error (radians) = ", mean)
 mean_gap = mean/th_gap
 print(r"Mean Error / $\Delta\theta$ =", mean_gap)
 
+print("theta returns =", th_returns)
+print("theta finals: ", th_finals)
+print("theta values=", th_values)
+print("deltas =", deltas)
+print(len(th_returns)==len(th_finals))
 
 params = {
  'axes.labelsize': 14,
