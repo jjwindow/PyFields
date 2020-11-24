@@ -29,14 +29,14 @@ neptune = (a_N, g_N, h_N)
 
 # Dipole coefficients
 g_D = np.array([[0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.]])
-h_D = np.array([[0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.]])
+h_D = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.]])
 a_D = 1
 
 dipole = (a_D, g_D, h_D)
 
 # Quadrupole coefficients
 g_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.]])
-h_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.]])
+h_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.]])
 a_Q = 1
 
 quadrupole = (a_Q, g_Q, h_Q)
@@ -208,27 +208,33 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         else:
             return p_arr, B_arr
 
-def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01, maxits = 100000):
+def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01, maxits = 100000, plot = True):
     """
     Plots 'num' (int) field lines for equally spaced theta values between th_min and th_max.
     Field lines calculated using field coefficients given by coeffs (tuple), stepsize ds (float),
     and terminating after maxits (int). Use plt.show() to display plot after calling.
     """
     th_values = np.linspace(th_min, th_max, num, endpoint=False)
+    field_lines = []
     with tqdm(total = len(th_values), desc=f"THETA {round(th_min/np.pi, 2)}*pi TO {round(th_max/np.pi, 2)}*pi") as bar:
         for th in th_values:
             if th==0 or th==np.pi or th==2*np.pi:
                 pass
             else:
-                field = field_trace([1., th, 0.], coeffs, ds, maxits)
-                if field is not None:
-                    (x, y) = field
-                    if y[0] > y[-1]:
-                        colour = 'r'
+                field_line = field_trace([1., th, 0.], coeffs, ds, maxits)
+                if field_line is not None:
+                    (x, y) = field_line
+                    if plot:
+                        if y[0] > y[-1]:
+                            colour = 'r'
+                        else:
+                            colour = 'b'
+                        plt.plot(x, y, color = colour)
                     else:
-                        colour = 'b'
-                    plt.plot(x, y, color = colour)
+                        field_lines.append(field_line)
             bar.update()
+    field_lines = np.asarray(field_lines)
+    return field_lines
 
 
 ##################### ANALYTIC COMPARISONS #######################

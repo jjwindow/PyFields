@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mat
 import numpy as np
 from tqdm import tqdm
+import os.path
 
 ########################## DIPOLE TEST ###############################
 
@@ -33,7 +34,7 @@ from tqdm import tqdm
 ########################## ERROR CALCULATION ##########################
 
 def dipole_error(num, th_min, th_max, ds, max_iter):
-    th_values = np.linspace(th_min, th_max, num)
+    th_values = np.linspace(th_min, th_max, num, endpoint=False)
     th_returns = []
     for th in th_values:
         if (th < 0.0):
@@ -68,17 +69,24 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
     deltas = np.array(deltas)
     lengths = np.array(lengths)
 
-    print("theta returns =", th_returns[-20:])
-    print("theta finals =", th_finals[-20:])
-    print("deltas =", deltas[-20:])
-    print("theta values=", th_values[-20:])
-    print(len(th_returns)==len(th_finals))
+    return th_values, deltas, lengths
 
-    return th_values, th_returns, deltas, lengths
-    
+def multi_step_size(num, th_min, th_max, stepsizes):
+    for ds in stepsizes:
+        field_lines = multiline_plot(num, th_min, th_max, ds=ds, maxits= int(ds*1e7), plot=False)
+        th_values, deltas, lengths = dipole_error(num, th_min, th_max, ds, int(ds*1e7))
+        fpath_field = f'/Testing/Dipole/Fieldlines/Dipole_fieldlines_ds_{ds}.npy'
+        fpath_errors = f'/Testing/Dipole/Errors/Dipole_errors_ds_{ds}.npy'
+        with open(fpath_field, 'wb') as file:
+            np.save(file, field_lines)
+        with open(fpath_errors, 'wb') as file:
+            np.save(file, [th_values, deltas, lengths])
+
+stepsizes=[0.1, 0.01]
+multi_step_size(50, -np.pi/2, np.pi/2, stepsizes)
 
 
-fpath = 'dipole_errors_0.01.npy'
+# fpath = 'dipole_errors_0.01.npy'
 
 """
 Below is how you save and load numpy arrays. If you're reading this, then you don't have
@@ -92,21 +100,24 @@ so you can just run this file and it will access the data straight away. :)
 #     np.save(f, [th_values, th_returns, deltas, lengths])
 
 ### RUN THIS BLOCK TO RETRIEVE SAVED DATA ###
-with open(fpath, 'rb') as f:
-    th_deltas = np.load(f, allow_pickle=True)
-    th_values, th_returns, deltas, lengths = th_deltas
+# with open(fpath, 'rb') as f:
+#     th_deltas = np.load(f, allow_pickle=True)
+#     th_values, th_returns, deltas, lengths = th_deltas
+
 
 #################### MEAN VALUES #######################
-th_values = [th for th in th_values if not np.isnan(th)]
-th_returns = [th for th in th_returns if not np.isnan(th)]
-deltas = [d for d in deltas if not np.isnan(d)]
-lengths = [l for l in lengths if not np.isnan(l)]
-th_gap = th_values[1]-th_values[0]
-print("theta gap=", th_gap)
-mean = np.mean(deltas)
-print("Mean Error (radians) = ", mean)
-mean_gap = mean/th_gap
-print(r"Mean Error / $\Delta\theta$ =", mean_gap)
+
+# th_values = [th for th in th_values if not np.isnan(th)]
+# th_returns = [th for th in th_returns if not np.isnan(th)]
+# deltas = [d for d in deltas if not np.isnan(d)]
+# lengths = [l for l in lengths if not np.isnan(l)]
+# th_gap = th_values[1]-th_values[0]
+# print("theta gap=", th_gap)
+# mean = np.mean(deltas)
+# print("Mean Error (radians) = ", mean)
+# mean_gap = mean/th_gap
+# print(r"Mean Error / $\Delta\theta$ =", mean_gap)
+
 
 #################### PLOTTING #######################
 
@@ -120,7 +131,7 @@ params = {
    }
 plt.rcParams.update(params)
 
-l = int(len(th_values)/2)
+#l = int(len(th_values)/2)
 
 # fig, ax = plt.subplots(2,1, sharex=True)
 # ax[0].plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")

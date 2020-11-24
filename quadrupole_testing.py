@@ -158,12 +158,12 @@ Plotting the angular error vs theta value, with mean
 """
 Plotting the angular error/delta theta vs theta value, with mean
 """
-plt.plot(th_values, deltas/th_gap, label="Step Size = 0.01")
-plt.plot(th_values, [mean_gap for _ in th_values], label="Mean")
-plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
-plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
-plt.legend()
-plt.show()
+# plt.plot(th_values, deltas/th_gap, label="Step Size = 0.01")
+# plt.plot(th_values, [mean_gap for _ in th_values], label="Mean")
+# plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
+# plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
+# plt.legend()
+# plt.show()
 
 field = 'Quadrupole'
 
