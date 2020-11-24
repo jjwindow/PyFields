@@ -8,6 +8,7 @@ Testing model using a dipole
 
 from all_funcs import *
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mat
 import numpy as np
 from tqdm import tqdm
@@ -82,8 +83,6 @@ def multi_step_size(num, th_min, th_max, stepsizes):
         with open(fpath_errors, 'wb') as file:
             np.save(file, [th_values, deltas, lengths])
 
-stepsizes=[0.1, 0.01]
-multi_step_size(50, -np.pi/2, np.pi/2, stepsizes)
 
 
 # fpath = 'dipole_errors_0.01.npy'
@@ -205,6 +204,9 @@ def analytic_dipole_plot(numlines):
 
 # multiline_plot(25, th_max = np.pi/2)
 # ls=(0, (3, 10, 1, 10, 1, 10))
+
+multiline_3D(50, [0.])
+plt.show()
 
         
 

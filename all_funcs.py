@@ -10,6 +10,7 @@ import numpy as np
 import numba
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 
 ######################### GLOBAL DEFINITIONS #############################
 
@@ -203,8 +204,8 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         return None
     else:
         if axes == "Cartesian":
-            x, y = map(list, zip(*[(r*np.sin(theta), r*np.cos(theta)) for r, theta in zip(p_arr[:, 0], p_arr[:, 1])]))
-            return x, y
+            x, y, z = map(list, zip(*[(r*np.sin(theta)*np.cos(phi), r*np.cos(theta), r*np.sin(theta)*np.sin(phi)) for r, theta, phi in zip(p_arr[:, 0], p_arr[:, 1], p_arr[:, 2])]))
+            return x, y, z
         else:
             return p_arr, B_arr
 
@@ -223,7 +224,7 @@ def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01
             else:
                 field_line = field_trace([1., th, 0.], coeffs, ds, maxits)
                 if field_line is not None:
-                    (x, y) = field_line
+                    (x, y, z) = field_line
                     if plot:
                         if y[0] > y[-1]:
                             colour = 'r'
@@ -233,8 +234,22 @@ def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01
                     else:
                         field_lines.append(field_line)
             bar.update()
-    field_lines = np.asarray(field_lines)
+    # field_lines = np.asarray(field_lines)
     return field_lines
+
+def multiline_3D(num_th, phi_array, coeffs = dipole, ds = 0.01, maxits = 100000):
+    fig=plt.figure()
+    ax = plt.axes(projection = '3d')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    for phi in phi_array:
+        field_lines = multiline_plot(num_th, th_min=-np.pi/2, th_max=np.pi/2, coeffs=coeffs, ds=ds, maxits=maxits, plot=False)
+        print(len(field_lines))
+        for field_line in field_lines:
+            print(len(field_line))
+            (x, y, z) = field_line
+            ax.plot3D(x, y, z)
 
 
 ##################### ANALYTIC COMPARISONS #######################
