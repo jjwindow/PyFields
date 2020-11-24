@@ -164,3 +164,10 @@ plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
 plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
 plt.legend()
 plt.show()
+
+field = 'Quadrupole'
+
+multiline_plot(25, th_max = np.pi/2, coeffs = quadrupole)
+_analytic_field_plot(0, np.pi/2, 25, 0.001, 'quad')
+plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),mat.lines.Line2D([0,0], [1,1], color = 'k', linestyle='--')), (f'Traced {field}, ds = 0.01',f'Analytical {field}'))
+plt.show()

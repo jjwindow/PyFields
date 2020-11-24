@@ -35,7 +35,7 @@ a_D = 1
 dipole = (a_D, g_D, h_D)
 
 # Quadrupole coefficients
-g_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 1., 0., 0.], [0., 0., 0., 0.]])
+g_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.]])
 h_Q = np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.]])
 a_Q = 1
 
@@ -231,3 +231,47 @@ def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01
             bar.update()
 
 
+##################### ANALYTIC COMPARISONS #######################
+
+def _analytic_field_point_(th_i, th, field = 'dipole'):
+    """
+    Calculates (x,y) coordinate at th for a field line whith starting coordinate (t, th, ph) = (1, th, 0).
+    Also returns rflag, which is True if r <= 1 and false otherwise. This is to terminate calculation.
+    """
+    if field == 'dipole':
+        def x(th_i, th):
+            return ((np.sin(th)**3)/np.sin(th_i)**2)
+        def y(th_i, th):
+            return ((np.sin(th)**2 * np.cos(th))/np.sin(th_i)**2)
+    else:
+        def x(th_i, th):
+            return (np.sin(th_i)**2 * np.cos(th_i))**(-0.5) * np.sqrt(np.sin(th)**2 * np.cos(th)) * np.sin(th)
+        def y(th_i, th):
+            return (np.sin(th_i)**2 * np.cos(th_i))**(-0.5) * np.sqrt(np.sin(th)**2 * np.cos(th)) * np.cos(th)
+    
+    x, y = x(th_i, th), y(th_i, th)
+    rflag = (round((x**2 + y**2), 6) < 1)        # Boolean flag - is radial coord < 1?
+    # print(rflag)
+    return x, y, rflag
+    
+def analytic_field_line(th_i, ds, field = 'dipole'):
+    th_range = np.arange(th_i, 2*np.pi, step=ds)
+    # th_i_range = np.array([th_i for _ in th_range])
+    # x_y_coords = [(x, y) for x, y, rflag in [_analytic_field_point_(th_i, th) for th_i, th in zip(th_i_range, th_range)] if not rflag]
+    x_y_coords = []
+    j = 0
+    rflag = False
+    # breakpoint()
+    while (not rflag) and (j < len(th_range)):
+        x, y, rflag = _analytic_field_point_(th_i, th_range[j], field)
+        x_y_coords.append((x, y))
+        j += 1
+    # breakpoint()
+    return x_y_coords
+
+def _analytic_field_plot(th_min, th_max, numlines, ds, field = 'dipole'):
+    th_start = np.linspace(th_min, th_max, numlines, endpoint=False)
+    for th_i in th_start:
+        coords = analytic_field_line(th_i, ds, field)
+        x_arr, y_arr = map(list, zip(*coords))
+        plt.plot(x_arr, y_arr, '--', color = 'k')
