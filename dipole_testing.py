@@ -27,8 +27,8 @@ import os.path
 #    }
 # plt.rcParams.update(params)
 # plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'),), ('Traced Dipole, ds = 0.01',))
-# plt.xlabel("Distance in x (Scaled by Planetary Radius)")
-# plt.ylabel("Distance in y (Scaled by Planetary Radius)")
+# plt.xlabel("Distance in x")
+# plt.ylabel("Distance in y")
 # plt.show()
 
 
@@ -74,8 +74,8 @@ def dipole_error(num, th_min, th_max, ds, max_iter):
 
 def multi_step_size(num, th_min, th_max, stepsizes):
     for ds in stepsizes:
-        field_lines = multiline_plot(num, th_min, th_max, ds=ds, maxits= int(ds*1e7), plot=False)
-        th_values, deltas, lengths = dipole_error(num, th_min, th_max, ds, int(ds*1e7))
+        field_lines = multiline_plot(num, th_min, th_max, ds=ds, maxits= int(1e4/ds), plot=False)
+        th_values, deltas, lengths = dipole_error(num, th_min, th_max, ds, int(1e4/ds))
         fpath_field = f'/Testing/Dipole/Fieldlines/Dipole_fieldlines_ds_{ds}.npy'
         fpath_errors = f'/Testing/Dipole/Errors/Dipole_errors_ds_{ds}.npy'
         with open(fpath_field, 'wb') as file:
@@ -104,20 +104,6 @@ so you can just run this file and it will access the data straight away. :)
 #     th_values, th_returns, deltas, lengths = th_deltas
 
 
-#################### MEAN VALUES #######################
-
-# th_values = [th for th in th_values if not np.isnan(th)]
-# th_returns = [th for th in th_returns if not np.isnan(th)]
-# deltas = [d for d in deltas if not np.isnan(d)]
-# lengths = [l for l in lengths if not np.isnan(l)]
-# th_gap = th_values[1]-th_values[0]
-# print("theta gap=", th_gap)
-# mean = np.mean(deltas)
-# print("Mean Error (radians) = ", mean)
-# mean_gap = mean/th_gap
-# print(r"Mean Error / $\Delta\theta$ =", mean_gap)
-
-
 #################### PLOTTING #######################
 
 params = {
@@ -132,9 +118,10 @@ plt.rcParams.update(params)
 
 #l = int(len(th_values)/2)
 
+"""Adjacent plot of angular error (scaled by angular separation) and field line length vs starting theta value, with mean. Only plotted one half """
 # fig, ax = plt.subplots(2,1, sharex=True)
 # ax[0].plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
-# ax[0].plot(th_values[l:], [mean/th_gap for _ in th_values[l:]], label="Mean")
+# ax[0].plot(th_values[l:], [mean_gap for _ in th_values[l:]], label="Mean")
 # ax[0].set_ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium', labelpad = 17)
 # ax[0].legend()
 # ax[1].plot(th_values[l:], lengths[l:], label = "Step Size = 0.01")
@@ -144,46 +131,30 @@ plt.rcParams.update(params)
 # plt.rcParams.update(params)
 # plt.show()
 
+"""Plot of angular error vs starting theta value, with mean. Only plotted one half """
 # plt.plot(th_values[l:], deltas[l:], label="Step Size = 0.01")
 # plt.plot(th_values[l:], [mean for _ in th_values[l:]], label="Mean")
 # plt.ylabel("Angular Discrepancy", fontsize = 'medium')
 # plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
 # plt.legend()
+# plt.rcParams.update(params)
 # plt.show()
 
-"""Dipole scaled errors vs latitude, with mean """
+"""Plot of angular error (scaled by the angular separation) vs starting theta value, with mean. Only plotted one half """
 # plt.plot(th_values[l:], deltas[l:]/th_gap, label="Step Size = 0.01")
 # plt.plot(th_values[l:], [mean_gap for _ in th_values[l:]], label="Mean")
 # plt.ylabel(r"(Angular Discrepancy)/$\Delta\theta$", fontsize = 'medium')
 # plt.xlabel(r"$\theta$ (rad)", fontsize = 'medium')
 # plt.legend()
+# plt.rcParams.update(params)
 # plt.show()
 
+"""Plot of angular error (scaled by the angular separation) vs field line length (i.e. how many steps taken). Only plotted one half """
 # plt.rcParams.update(params)
 # plt.plot(lengths[l:], deltas[l:]/th_gap, label = "Step Size = 0.01")
 # plt.xscale('log')
 # plt.xlabel("Log(Fieldline Length) [num. points]")
 # plt.ylabel(r"(Angular Error)/$\Delta\theta$")
-# plt.legend()
-# plt.show()
-
-### Want to observe uncertainty - use two field lines reflected in theta, look at difference between origin and ends.
-# th_0 = 0.3
-# x_1, y_1 = field_trace([1., th_0, 0.], dipole, 0.01, 100000)
-# x_2, y_2 = field_trace([1., np.pi - th_0, 0.], dipole, 0.01, 100000)
-# plt.plot(x_1, y_1, label="Northern Fieldline")
-# plt.plot(x_2, y_2, label="Southern Fieldline")
-# params = {
-#  'axes.labelsize': 14,
-#    'font.size': 18,
-#    'legend.fontsize': 16,
-#    'xtick.labelsize': 14,
-#    'ytick.labelsize': 14,
-#    'figure.figsize': [15,10]
-#    }
-# plt.rcParams.update(params)
-# plt.xlabel("Distance in x (Scaled by Planetary Radius)")
-# plt.ylabel("Distance in y (Scaled by Planetary Radius)")
 # plt.legend()
 # plt.show()
 
@@ -205,6 +176,8 @@ def analytic_dipole_plot(numlines):
 # multiline_plot(25, th_max = np.pi/2)
 # ls=(0, (3, 10, 1, 10, 1, 10))
 
+
+#################### 3D DIPOLE PLOT #######################
 multiline_3D(50, [0.])
 plt.show()
 
