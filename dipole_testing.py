@@ -178,7 +178,7 @@ def analytic_dipole_plot(numlines):
 
 
 #################### 3D DIPOLE PLOT #######################
-multiline_3D(50, [0.])
+multiline_3D(10, [0., np.pi/3, 2*np.pi/3])
 plt.show()
 
         

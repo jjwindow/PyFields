@@ -17,16 +17,22 @@ from mpl_toolkits.mplot3d import axes3d
 # Uranus Coefficients
 g_U = np.array([[0., 0., 0.], [0.11893, 0.11579, 0.], [-0.06030, -0.12587, 0.00196]])
 h_U = np.array([[0., 0., 0.], [0., -0.15648, 0.], [0., 0.06116, 0.04759]])
+g_U_err = np.array([[0., 0., 0.], [0.001, 0.003, 0.], [0.00550, 0.00610, 0.005]])
+h_U_err = np.array([[0., 0., 0.], [0., 0.0017, 0.], [0., 0.00360, 0.00810]])
 a_U = 1
 
 uranus = (a_U, g_U, h_U)
+uranus_uncert = (a_U, g_U_err, h_U_err)
 
 # Neptune Coefficients
-g_N = np.array([[0., 0., 0., 0.], [0.09732, 0.03220, 0., 0.], [0.07448, 0.00664, 0.04499, 0.], [-0.06592, 0.04098, -0.03581, 0.00484]])
-h_N = np.array([[0., 0., 0., 0.], [0., 0.09889, 0., 0.], [0., 0.11230, -0.00070, 0.], [0., -0.03669, 0.01791, -0.00770]])
+g_N = np.array([[0., 0., 0.], [0.09732, 0.03220, 0.], [0.07448, 0.00664, 0.04499]])
+h_N = np.array([[0., 0., 0.], [0., -0.09889, 0.], [0., 0.11230, -0.00070]])
+g_N_err = np.array([[0., 0., 0.], [0.002, 0.0036, 0.], [0.0113, 0.0112, 0.0084]])
+h_N_err = np.array([[0., 0., 0.], [0., 0.0011, 0.], [0., 0.003, -0.0034]])
 a_N = 1
 
 neptune = (a_N, g_N, h_N)
+neptune_uncert = (a_N, g_N_err, h_N_err)
 
 # Dipole coefficients
 g_D = np.array([[0., 0., 0., 0.], [1., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.]])
@@ -209,7 +215,7 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         else:
             return p_arr, B_arr
 
-def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01, maxits = 100000, plot = True):
+def multilines(phi, num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01, maxits = 100000, plot = True):
     """
     Plots 'num' (int) field lines for equally spaced theta values between th_min and th_max.
     Field lines calculated using field coefficients given by coeffs (tuple), stepsize ds (float),
@@ -222,7 +228,7 @@ def multiline_plot(num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01
             if th==0 or th==np.pi or th==2*np.pi:
                 pass
             else:
-                field_line = field_trace([1., th, 0.], coeffs, ds, maxits)
+                field_line = field_trace([1., th, float(phi)], coeffs, ds, maxits)
                 if field_line is not None:
                     (x, y, z) = field_line
                     if plot:
@@ -244,12 +250,10 @@ def multiline_3D(num_th, phi_array, coeffs = dipole, ds = 0.01, maxits = 100000)
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     for phi in phi_array:
-        field_lines = multiline_plot(num_th, th_min=-np.pi/2, th_max=np.pi/2, coeffs=coeffs, ds=ds, maxits=maxits, plot=False)
-        print(len(field_lines))
+        field_lines = multilines(phi, num_th, th_min=-np.pi/2, th_max=np.pi/2, coeffs=coeffs, ds=ds, maxits=maxits, plot=False)
         for field_line in field_lines:
-            print(len(field_line))
             (x, y, z) = field_line
-            ax.plot3D(x, y, z)
+            ax.plot3D(x, y, z, color='b')
 
 
 ##################### ANALYTIC COMPARISONS #######################
