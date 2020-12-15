@@ -12,17 +12,42 @@ from palettable.wesanderson import Aquatic2_5, Darjeeling2_5
 # plt.show()
 
 def random_footpoints(n, moon, phi):
-    if moon == 'Triton':
+    """
+    A function that generates random magnetic field footpoints within the bounds 
+    of the uncertainties of the magnetic field coefficients. New spherical harmonic 
+    expansion coefficients are calculated using a pseudorandom number generator, 
+    and n fieldlines are traced using these for a given moon-planet system at a 
+    fixed colatitude. The array of footpoints for all fieldlines is returned.
+
+    PARAMS
+    --------------------------------------------------------------------------------
+    n       -   int; number of random fieldlines to calculate.
+    moon    -   str; name of the moon to calculate footpoint uncertainties for.
+    phi     -   float; value of colatitude at which to start the fieldline.
+
+    RETURNS
+    ---------------------------------------------------------------------------------
+    footpoints - list; list of tuples, where each tuple is (x, y, z) position of a 
+                 footpoint of a fieldline calculated from the random coefficients.
+    """
+    uranian_moons = {'ariel' : [7.469, np.pi/2, phi], 'umbriel' : [10.41, np.pi/2, phi], 
+                        'titania' : [17.07, np.pi/2, phi], 'oberon' : [22.83, np.pi/2, phi]}
+    # Select coefficients to use 
+    moon = moon.lower()
+    if moon == 'triton':
         a, g, h = neptune
         a, g_err, h_err = neptune_uncert
-    else:
+        ### START POS NEEDED - MUST BE A POINT ON THE ORBIT. NEED TO FIND GENERIC POINT,
+        ### E.G - THE THETA VAL WHERE PHI=0 OR VICE-VERSA
+    elif moon in uranian_moons.keys():
         a, g, h = uranus
         a, g_err, h_err = uranus_uncert
-        if moon == 'Titania':
-            start_pos = [17.188, np.pi/2, phi]
-        else: 
-            pass
+        ### SAME CONDITION AS FOR TRITON NEEDED FOR MIRANDA.
+        start_pos = uranian_moons[moon]
+    else:
+        raise ValueError("`moon' arg must be one of the 5 major Uranian moons or 'triton'.")
 
+    # initialise footpoints array
     footpoints = [0. for _ in range(n)]
     with tqdm(total=n, desc=":)") as bar:
         for k in range(n):
@@ -31,15 +56,23 @@ def random_footpoints(n, moon, phi):
 
             for i in range(3):
                 for j in range(3):
+                    # Ignore null coefficients
                     if g[i][j] == 0.:
                         pass
                     else:
-                        r = (np.random.random()-0.5)*2
-                        g_new[i][j] = g[i][j] + g_err[i][j]*r
-                        h_new[i][j] = h[i][j] + h_err[i][j]*r
+                        # Generate random num between -1 and 1
+                        r_1 = (np.random.random()-0.5)*2
+                        # Use random num as multiplier on uncertainty, add
+                        # to coefficients
+                        g_new[i][j] = g[i][j] + g_err[i][j]*r_1
+                        # Repeat with different randnum for h coeffs
+                        r_2 = (np.random.random() - 0.5)*2
+                        h_new[i][j] = h[i][j] + h_err[i][j]*r_2
             
             coeffs = (a, g_new, h_new)
+            # Trace fieldline with new set of coefficients
             x, y, z = field_trace(start_pos, coeffs, 0.005, 200000)
+            # Take fieldline footpoint
             footpoints[k] = (x[-1], y[-1], z[-1])
             bar.update()
     return footpoints
@@ -66,7 +99,8 @@ ax.set_zlabel('z')
 # x, y, z = map(list, zip(*footpoints))
 # ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
 
-footpoints = random_footpoints(100, 'Titania', 0)
+footpoints = random_footpoints(10, 'Titania', 0)
+print(footpoints)
 x, y, z  = map(list, zip(*footpoints))
 ax.plot3D(x, y, z)
 
