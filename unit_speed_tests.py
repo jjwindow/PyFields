@@ -2,8 +2,8 @@
 # import field_calculator_numba
 # import test_wrapper
 # import stepper
-import all_funcs
-from dipole_testing import multilines
+from all_funcs import *
+# from dipole_testing import multilines
 import numpy as np
 import time
 
@@ -59,9 +59,10 @@ def functimer(func, args, n):
 
     print(f"{func.__name__} Time ({n} run avg):\n{t/n}")
 
-functimer(multilines, (50,), 5)
-# B_timer("RK4", 100000)
-# B_timer("B", 100000)
-# B_timer("B_numba", 100000)
+# functimer(multilines, (50,), 5)
+# # B_timer("RK4", 100000)
+# # B_timer("B", 100000)
+# # B_timer("B_numba", 100000)
 
-wrapper_timer(10)
+# wrapper_timer(10)
+

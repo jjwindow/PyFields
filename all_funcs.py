@@ -210,7 +210,7 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
         return None
     else:
         if axes == "Cartesian":
-            x, y, z = map(list, zip(*[(r*np.sin(theta)*np.cos(phi), r*np.cos(theta), r*np.sin(theta)*np.sin(phi)) for r, theta, phi in zip(p_arr[:, 0], p_arr[:, 1], p_arr[:, 2])]))
+            x, z, y = map(list, zip(*[(r*np.sin(theta)*np.cos(phi), r*np.cos(theta), r*np.sin(theta)*np.sin(phi)) for r, theta, phi in zip(p_arr[:, 0], p_arr[:, 1], p_arr[:, 2])]))
             return x, y, z
         else:
             return p_arr, B_arr
@@ -300,3 +300,31 @@ def _analytic_field_plot(th_min, th_max, numlines, ds, field = 'dipole'):
         coords = analytic_field_line(th_i, ds, field)
         x_arr, y_arr = map(list, zip(*coords))
         plt.plot(x_arr, y_arr, '--', color = 'k')
+
+################# COORDINATE TRANSFORM ########################
+
+def cartesian2latlong(x, y, z):
+    """
+    Convert 3D Cartesian coordinates to latitude-longitudes for 
+    2D projection plots.
+    PARAMS
+    -----------------------------------------------------------------------
+    x, y, z -   float; coordinates in planet-centred Cartesian
+                system. Axis of planetary rotation aligned along z-axis.
+    RETURNS
+    -----------------------------------------------------------------------
+    lat, long - float;
+    """
+    # Convert lists to arrays for vectorisation.
+    # Ignores floats and arrays.
+    args = [x, y, z]
+    for i, elem in enumerate(args):
+        if isinstance(elem, list):
+            args[i] = np.asarray(elem)
+    
+    [x, y, z] = args
+    r = np.sqrt(x**2 + y**2 + x**2)
+    lat = np.arcsin(z/r)*(180/(np.pi))
+    longt = np.arctan2(y, x)*(180/(np.pi))
+
+    return lat, longt
