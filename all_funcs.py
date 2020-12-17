@@ -11,6 +11,8 @@ import numba
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
+import pandas as pd
+import warnings
 
 ######################### GLOBAL DEFINITIONS #############################
 
@@ -328,3 +330,53 @@ def cartesian2latlong(x, y, z):
     longt = np.arctan2(y, x)*(180/(np.pi))
 
     return lat, longt
+
+##################### MOON SELECTOR ###############################
+
+def moon_selector(moon, *args):
+    """
+    Returns desired parameters for a given moon.
+
+    PARAMS
+    ------------------------------------------------------------------
+    Possible values of 'moon':'
+    'Miranda' - 'Ariel' - 'Umbriel' - 'Titania' - 'Oberon' - 'Triton'
+    (not case sensitive.)
+    *args:
+    Passing no args returns full properties dictionary for that moon.
+    Otherwise, *args are keys to return properties for the moon. Each
+    argument should be a string.
+    Valid args are:
+    'Parent'    -   'inc'      -    'R'    -    'a'     -   'T'
+    (parent         (inclination,  (Radius,   (scaled     (orbital
+    planet, str)     radians)           km)    radius)   time period)
+
+    RETURNS
+    -------------------------------------------------------------------
+    out_dict    -   dict; of type {'arg' : arg_value, ...} for all 'arg' 
+                    passed as arguments.
+
+    Note - Invalid arguments do not raise an error but deploy a warning.
+    """
+    if not isinstance(moon, str):
+        raise TypeError("Positional argument 'moon' must be of type string.")
+    
+    df = pd.read_csv('satellite_properties.csv')
+    # Select coefficients to use 
+    moon = moon.lower()
+    if moon not in df['Name'].tolist():
+        raise ValueError("'moon' must be one of the 5 major Uranian moons or 'triton'.")
+    
+    df.set_index('Name', inplace=True)
+    moon_dict = df.loc[moon].to_dict()
+
+    if not len(args):
+        return moon_dict
+    
+    out_dict = {arg : moon_dict[arg] for arg in args if arg in moon_dict.keys()}
+    bad_args = [arg for arg in args if not (arg in moon_dict.keys())]
+
+    if len(bad_args):
+        warnings.warn(f'The following arguments are not in satellite_proprties and were not returned:\n {bad_args}')
+
+    return out_dict
