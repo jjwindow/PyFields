@@ -119,7 +119,7 @@ def B_mag(B, r, th):
     # magnitude = B[0]
     return magnitude
 
-def RK4(p_0, B_0, ds, field_coeffs):
+def RK4(p_0, B_0, ds, field_coeffs, back = False):
     """
     Given starting coordinates r, th, ph, performs an RK4 step of size ds to
     get to follow the field to a new postion vector.
@@ -146,26 +146,19 @@ def RK4(p_0, B_0, ds, field_coeffs):
     B_3 = B(p_3, field_coeffs)
     v_3 = B_3/B_mag(B_3, p_3[0], p_3[1])
 
-    p_next = p_0 + ds*(v_0 + 2*v_1 + 2*v_2 + v_3)/6
+    if not back:
+        p_next = p_0 + ds*(v_0 + 2*v_1 + 2*v_2 + v_3)/6
+    else:
+        p_next = p_0 - ds*(v_0 + 2*v_1 + 2*v_2 + v_3)/6
+
     B_next = B(p_next, field_coeffs)
 
     return p_next, B_next
-    
-def stepsizer():
-    """
-    We need a function that can calculate the field gradient at a point. We need to figure out
-    what inputs are required for this. I think it should be possible to calculate the gradient
-    from the vectors already given in RK4(). In which case, it should be done in RK4 and passed as an 
-    argument here, where this function will return a stepsize inversely proportional to the grad mag.
 
-    If it's more complicated, this can become the general Euler double-step which focuses on precision.
-    This is more general but I think more computationally expensive.
-    """
-    pass
 
 ################################### WRAPPER ###################################
 
-def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
+def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian", back = False):
     """
     Function to trace a field line given a starting positon.
 
@@ -195,7 +188,7 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian"):
 
     it = 1
     while (p_0[0] >= 1.) and (it < max_iter):
-        p_next, B_next = RK4(p_0, B_0, ds, field_coeffs)
+        p_next, B_next = RK4(p_0, B_0, ds, field_coeffs, back)
         p_arr[it] = p_next
         B_arr[it] = B_next
         p_0, B_0 = p_next, B_next
@@ -332,6 +325,8 @@ def cartesian2latlong(x, y, z):
     return lat, longt
 
 ##################### MOON SELECTOR ###############################
+df = pd.read_csv('satellite_properties.csv')
+df.set_index('Name', inplace=True)
 
 def moon_selector(moon, *args):
     """
@@ -351,6 +346,11 @@ def moon_selector(moon, *args):
     (parent         (inclination,  (Radius,   (scaled     (orbital
     planet, str)     radians)           km)    radius)   time period)
 
+                        'coeffs'    -    'uncert'
+    Spherical harmonic coefficients for parent planet / associated 
+    uncertainties.
+    (tuple of form (a, g, h).)
+
     RETURNS
     -------------------------------------------------------------------
     out_dict    -   dict; of type {'arg' : arg_value, ...} for all 'arg' 
@@ -361,22 +361,52 @@ def moon_selector(moon, *args):
     if not isinstance(moon, str):
         raise TypeError("Positional argument 'moon' must be of type string.")
     
-    df = pd.read_csv('satellite_properties.csv')
+    # df = pd.read_csv('satellite_properties.csv')
     # Select coefficients to use 
+    # df.set_index('Name', inplace=True)
     moon = moon.lower()
-    if moon not in df['Name'].tolist():
+    if moon not in df.index.values:
         raise ValueError("'moon' must be one of the 5 major Uranian moons or 'triton'.")
     
-    df.set_index('Name', inplace=True)
     moon_dict = df.loc[moon].to_dict()
+    parent = moon_dict['Parent']
+    coeffs = (parent == 'Uranus')*uranus + (parent == 'Neptune')*neptune
+    coeffs_uncert = (parent == 'Uranus')*uranus_uncert + (parent == 'Neptune')*neptune_uncert
+    moon_dict['coeffs'] = coeffs
+    moon_dict['uncert'] = coeffs_uncert
 
     if not len(args):
         return moon_dict
     
     out_dict = {arg : moon_dict[arg] for arg in args if arg in moon_dict.keys()}
+
     bad_args = [arg for arg in args if not (arg in moon_dict.keys())]
 
     if len(bad_args):
         warnings.warn(f'The following arguments are not in satellite_proprties and were not returned:\n {bad_args}')
 
     return out_dict
+
+import time
+def functimer(func, args, n):
+    """
+    Times a function n times, displays and returns the average time taken.
+    'args' are arguments to pass to the function being timed and should be 
+    a tuple to be unpacked.
+    RETURNS
+    ----------------------------------------------------------------------
+
+    """
+    t = 0
+    for _ in range(n):
+        t_0 = time.time()
+        func(*args)
+        t += time.time() - t_0
+    mean = t/n
+    print(f"{func.__name__} Time ({n} run avg):\n{mean}")
+    return mean
+
+all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
+
+t_arr = [functimer(moon_selector, (moon,), 20) for moon in all_moons]
+print(t_arr)
