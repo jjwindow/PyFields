@@ -136,6 +136,7 @@ x, y, z  = map(list, zip(*footpoints))
 lat, longt = cartesian2latlong(x, y, z)
 trueLat, trueLongt = cartesian2latlong(*trueFoot)
 
+
 def makeThisAPlottingFunc():
     """
     Make this a general plotting func later.
@@ -172,6 +173,8 @@ print("Mean long: ", mean_long_dev)
 # plt.axvline(mean_ang_dev, color = 'k', linestyle='dashed', label="Arithmetic Mean")
 # plt.legend()
 # plt.show()
+
+
 ###### Histograms ######
 lat_devs = []
 longt_devs = []
@@ -232,3 +235,20 @@ plt.show()
 # plt.xlabel(r'Longitude ($^\circ$)')
 # plt.ylabel(r'Latidude ($^\circ$)')
 # plt.show()
+
+def orbit(planet, radius, period_moon, period_plan, incl, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
+    omega_moon = (2*np.pi)/period_moon
+    omega_plan = (2*np.pi)/period_plan
+    t_step = period_moon/num
+    n = num*num_orbits
+
+    footpoints = []
+
+    for n in np.linspace(0, n, n+1):
+        pos = [radius, np.pi/2 - incl*np.sin(omega_moon*n*t_step), (omega_moon*n*t_step)-(omega_plan*n*t_step)]
+        x, y, z = field_trace(pos, planet, 0.005, 200000)
+        point = (x[-1], y[-1], z[-1])
+        footpoints.append(points)
+    
+    return footpoints
+
