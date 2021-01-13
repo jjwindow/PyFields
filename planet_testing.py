@@ -87,35 +87,6 @@ def random_footpoints(n, moon, phi, trueTrace = False):
         return footpoints
         
 
-
-############# TITANIA #############
-# ax = plt.axes(projection = '3d')
-# ax.set_xlabel('x')
-# ax.set_ylabel('y')
-# ax.set_zlabel('z')
-
-# with tqdm(total=50, desc="FOOTPOINTS") as bar:
-#     footpoints = []
-#     for phi in np.linspace(0, 2*np.pi, 50):
-#         start_pos = [17.188, (np.pi/2 - 0.00593), phi]
-#         x, y, z = field_trace(start_pos, uranus, 0.005, 200000)
-#         # point = (x[-1], y[-1], z[-1])
-#         # footpoints.append(point)
-#         ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
-#         bar.update()
-
-# print(len(footpoints))
-# x, y, z = map(list, zip(*footpoints))
-# ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
-
-# u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
-# a = np.cos(u)*np.sin(v)
-# b = np.sin(u)*np.sin(v)
-# c = np.cos(v)
-# # ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
-
-# plt.show()
-
 ###### Plotting range of footpoints for a single position on lat-long plot ######
 phi = 0
 moon = 'Titania'
@@ -167,13 +138,6 @@ print("Mean Ang: ", mean_ang_dev*180/np.pi)
 print("Mean lat: ", mean_lat_dev)
 print("Mean long: ", mean_long_dev)
 
-# plt.hist(ang_dev, bins='auto', edgecolor='k',)
-# plt.xlabel(r"Angular Deviation of Footpoints ($^\circ$)")
-# plt.ylabel("Frequency Density")
-# plt.axvline(mean_ang_dev, color = 'k', linestyle='dashed', label="Arithmetic Mean")
-# plt.legend()
-# plt.show()
-
 
 ###### Histograms ######
 lat_devs = []
@@ -219,23 +183,6 @@ plt.show()
 # ax2[1].axvline(trueLongt, color='k', linestyle='dashed', linewidth=1)
 
 
-###### Plotting an entire orbit on a lat-long plot ######
-# with tqdm(total=50, desc="FOOTPOINTS") as bar:
-#     latitudes = []
-#     longitudes = []
-#     for phi in np.linspace(0, 2*np.pi, 100):
-#         start_pos = [17.07, np.pi/2, phi]
-#         x, y, z = field_trace(start_pos, uranus, 0.005, 200000)
-#         latitude, longitude = cartesian2latlong(x[-1], y[-1], z[-1])
-#         latitudes.append(latitude)
-#         longitudes.append(longitudes)
-#         plt.plot(longitudes, latitudes, 'x')
-#         bar.update()
-
-# plt.xlabel(r'Longitude ($^\circ$)')
-# plt.ylabel(r'Latidude ($^\circ$)')
-# plt.show()
-
 def orbit(planet, radius, period_moon, period_plan, incl, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
     omega_moon = (2*np.pi)/period_moon
     omega_plan = (2*np.pi)/period_plan
@@ -245,10 +192,40 @@ def orbit(planet, radius, period_moon, period_plan, incl, num, num_orbits):     
     footpoints = []
 
     for n in np.linspace(0, n, n+1):
-        pos = [radius, np.pi/2 - incl*np.sin(omega_moon*n*t_step), (omega_moon*n*t_step)-(omega_plan*n*t_step)]
+        pos = [radius, np.pi/2 - incl*np.sin(omega_moon*n*t_step), (omega_plan*n*t_step)-(omega_moon*n*t_step)]
         x, y, z = field_trace(pos, planet, 0.005, 200000)
         point = (x[-1], y[-1], z[-1])
-        footpoints.append(points)
+        footpoints.append(point)
+        x_back, y_back, z_back = field_trace(pos, planet, 0.005, 200000, back=True)
+        point_back = (x_back[-1], y_back[-1], z_back[-1])
+        footpoints.append(point_back)
     
     return footpoints
 
+############# TITANIA #############
+# ax = plt.axes(projection = '3d')
+# ax.set_xlabel('x')
+# ax.set_ylabel('y')
+# ax.set_zlabel('z')
+
+# with tqdm(total=50, desc="FOOTPOINTS") as bar:
+#     footpoints = []
+#     for phi in np.linspace(0, 2*np.pi, 50):
+#         start_pos = [17.188, (np.pi/2 - 0.00593), phi]
+#         x, y, z = field_trace(start_pos, uranus, 0.005, 200000)
+#         # point = (x[-1], y[-1], z[-1])
+#         # footpoints.append(point)
+#         ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
+#         bar.update()
+
+# print(len(footpoints))
+# x, y, z = map(list, zip(*footpoints))
+# ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
+
+# u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
+# a = np.cos(u)*np.sin(v)
+# b = np.sin(u)*np.sin(v)
+# c = np.cos(v)
+# # ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
+
+# plt.show()
