@@ -350,6 +350,8 @@ def moon_selector(moon, *args):
     Spherical harmonic coefficients for parent planet / associated 
     uncertainties.
     (tuple of form (a, g, h).)
+                        'parent_day'
+    length of a day on the parent planet in units of Earth days
 
     RETURNS
     -------------------------------------------------------------------
@@ -378,14 +380,14 @@ def moon_selector(moon, *args):
     if not len(args):
         return moon_dict
     
-    out_dict = {arg : moon_dict[arg] for arg in args if arg in moon_dict.keys()}
+    out_tup = tuple([moon_dict[arg] for arg in args if arg in moon_dict.keys()])
 
     bad_args = [arg for arg in args if not (arg in moon_dict.keys())]
 
     if len(bad_args):
         warnings.warn(f'The following arguments are not in satellite_proprties and were not returned:\n {bad_args}')
 
-    return out_dict
+    return out_tup
 
 import time
 def functimer(func, args, n):

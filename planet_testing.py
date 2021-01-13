@@ -25,28 +25,33 @@ def random_footpoints(n, moon, phi, trueTrace = False):
     n       -   int; number of random fieldlines to calculate.
     moon    -   str; name of the moon to calculate footpoint uncertainties for.
     phi     -   float; value of colatitude at which to start the fieldline.
+    trueTrace   -   bool; trace the fieldline using the accepted g, h coeffs.
 
     RETURNS
     ---------------------------------------------------------------------------------
     footpoints - list; list of tuples, where each tuple is (x, y, z) position of a 
                  footpoint of a fieldline calculated from the random coefficients.
     """
-    uranian_moons = {'ariel' : [7.469, np.pi/2, phi], 'umbriel' : [10.41, np.pi/2, phi], 
-                        'titania' : [17.07, np.pi/2, phi], 'oberon' : [22.83, np.pi/2, phi]}
-    # Select coefficients to use 
-    moon = moon.lower()
-    if moon == 'triton':
-        a, g, h = neptune
-        a, g_err, h_err = neptune_uncert
-        ### START POS NEEDED - MUST BE A POINT ON THE ORBIT. NEED TO FIND GENERIC POINT,
-        ### E.G - THE THETA VAL WHERE PHI=0 OR VICE-VERSA
-    elif moon in uranian_moons.keys():
-        a, g, h = uranus
-        a, g_err, h_err = uranus_uncert
-        ### SAME CONDITION AS FOR TRITON NEEDED FOR MIRANDA.
-        start_pos = uranian_moons[moon]
-    else:
-        raise ValueError("`moon' arg must be one of the 5 major Uranian moons or 'triton'.")
+    # uranian_moons = {'ariel' : [7.469, np.pi/2, phi], 'umbriel' : [10.41, np.pi/2, phi], 
+    #                     'titania' : [17.07, np.pi/2, phi], 'oberon' : [22.83, np.pi/2, phi]}
+    # # Select coefficients to use 
+    # moon = moon.lower()
+    # if moon == 'triton':
+    #     a, g, h = neptune
+    #     a, g_err, h_err = neptune_uncert
+    #     ### START POS NEEDED - MUST BE A POINT ON THE ORBIT. NEED TO FIND GENERIC POINT,
+    #     ### E.G - THE THETA VAL WHERE PHI=0 OR VICE-VERSA
+    # elif moon in uranian_moons.keys():
+    #     a, g, h = uranus
+    #     a, g_err, h_err = uranus_uncert
+    #     ### SAME CONDITION AS FOR TRITON NEEDED FOR MIRANDA.
+    #     start_pos = uranian_moons[moon]
+    # else:
+    #     raise ValueError("`moon' arg must be one of the 5 major Uranian moons or 'triton'.")
+
+    (R, coeffs, uncert) = moon_selector(moon, 'R', 'coeffs', 'uncert')
+    start_pos = [R, np.pi/2, phi]
+    (a, g, h) = coeffs
     
     # Trace the accepted fieldline if desired
     if trueTrace:
@@ -140,40 +145,41 @@ print("Mean long: ", mean_long_dev)
 
 
 ###### Histograms ######
-lat_devs = []
-longt_devs = []
-latitudes = []
-longitudes = []
-for fp in footpoints:
-    x, y, z = fp
-    latitude, longitude = cartesian2latlong(x, y, z)
-    latitudes.append(latitude)
-    longitudes.append(longitude)
-    lat_devs.append(trueLat - latitude)
-    longt_devs.append(trueLongt - longitude)
+def histograms_dep():
+    lat_devs = []
+    longt_devs = []
+    latitudes = []
+    longitudes = []
+    for fp in footpoints:
+        x, y, z = fp
+        latitude, longitude = cartesian2latlong(x, y, z)
+        latitudes.append(latitude)
+        longitudes.append(longitude)
+        lat_devs.append(trueLat - latitude)
+        longt_devs.append(trueLongt - longitude)
 
-# fig, ax1 = plt.subplots(3, 1, sharex = True)
-fig = plt.figure()
-title_ax = fig.add_subplot(111, frameon=False)
-# hide tick and tick label of the big axis
-plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
-title_ax.set_ylabel("Frequency Density")
-title_ax.set_xlabel(r"Deviation from Accepted Footpoint ($^\circ$)")
-ax1 = fig.add_subplot(3,1,1)
-ax1.hist(lat_devs, bins='auto', color='b', edgecolor='k', label="Latitude")  #latitude deviations histogram
-ax1.axvline(mean_lat_dev, color='k', linestyle='dashed', linewidth=1, label = f"Mean: {round(mean_lat_dev, 3)}")
-ax1.legend()
+    # fig, ax1 = plt.subplots(3, 1, sharex = True)
+    fig = plt.figure()
+    title_ax = fig.add_subplot(111, frameon=False)
+    # hide tick and tick label of the big axis
+    plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+    title_ax.set_ylabel("Frequency Density")
+    title_ax.set_xlabel(r"Deviation from Accepted Footpoint ($^\circ$)")
+    ax1 = fig.add_subplot(3,1,1)
+    ax1.hist(lat_devs, bins='auto', color='b', edgecolor='k', label="Latitude")  #latitude deviations histogram
+    ax1.axvline(mean_lat_dev, color='k', linestyle='dashed', linewidth=1, label = f"Mean: {round(mean_lat_dev, 3)}")
+    ax1.legend()
 
-ax2 = fig.add_subplot(3,1,2)
-ax2.hist(longt_devs, bins='auto', color='c', edgecolor='k', label = "Longitude")   #longitude deviations histogram
-ax2.axvline(mean_long_dev, color='k', linestyle='dashed', linewidth=1, label = f"Mean: {round(mean_long_dev, 3)}")
-ax2.legend()
+    ax2 = fig.add_subplot(3,1,2)
+    ax2.hist(longt_devs, bins='auto', color='c', edgecolor='k', label = "Longitude")   #longitude deviations histogram
+    ax2.axvline(mean_long_dev, color='k', linestyle='dashed', linewidth=1, label = f"Mean: {round(mean_long_dev, 3)}")
+    ax2.legend()
 
-ax3 = fig.add_subplot(313)
-ax3.hist([ang*180/np.pi for ang in ang_dev], bins='auto', edgecolor='k', label = 'Absolute Angle')
-ax3.axvline(mean_ang_dev*180/np.pi, color = 'k', linestyle='dashed', label=f"Mean: {round(mean_ang_dev*180/np.pi, 3)}")
-ax3.legend()
-plt.show()
+    ax3 = fig.add_subplot(313)
+    ax3.hist([ang*180/np.pi for ang in ang_dev], bins='auto', edgecolor='k', label = 'Absolute Angle')
+    ax3.axvline(mean_ang_dev*180/np.pi, color = 'k', linestyle='dashed', label=f"Mean: {round(mean_ang_dev*180/np.pi, 3)}")
+    ax3.legend()
+    plt.show()
 
 # fig, ax2 = plt.subplots(2, 1)
 # ax2[0].hist(latitudes, bins='auto')   #latitudes histogram
@@ -183,7 +189,9 @@ plt.show()
 # ax2[1].axvline(trueLongt, color='k', linestyle='dashed', linewidth=1)
 
 
-def orbit(planet, radius, period_moon, period_plan, incl, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
+def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
+    
+    (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'R', 'coeffs', 'T', 'planet_day', 'inc')
     omega_moon = (2*np.pi)/period_moon
     omega_plan = (2*np.pi)/period_plan
     t_step = period_moon/num
@@ -191,12 +199,12 @@ def orbit(planet, radius, period_moon, period_plan, incl, num, num_orbits):     
 
     footpoints = []
 
-    for n in np.linspace(0, n, n+1):
-        pos = [radius, np.pi/2 - incl*np.sin(omega_moon*n*t_step), (omega_plan*n*t_step)-(omega_moon*n*t_step)]
-        x, y, z = field_trace(pos, planet, 0.005, 200000)
+    for i in np.linspace(0, n, n+1):
+        pos = [R, np.pi/2 - incl*np.sin(omega_moon*i*t_step), (omega_plan*i*t_step)-(omega_moon*i*t_step)]
+        x, y, z = field_trace(pos, coeffs, 0.005, 200000)
         point = (x[-1], y[-1], z[-1])
         footpoints.append(point)
-        x_back, y_back, z_back = field_trace(pos, planet, 0.005, 200000, back=True)
+        x_back, y_back, z_back = field_trace(pos, coeffs, 0.005, 200000, back=True)
         point_back = (x_back[-1], y_back[-1], z_back[-1])
         footpoints.append(point_back)
     
