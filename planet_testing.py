@@ -191,30 +191,52 @@ def histograms_dep():
 
 def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
     
-    (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'R', 'coeffs', 'T', 'planet_day', 'inc')
+    (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'R', 'coeffs', 'T', 'parent_day', 'inc')
     omega_moon = (2*np.pi)/period_moon
     omega_plan = (2*np.pi)/period_plan
     t_step = period_moon/num
     n = num*num_orbits
 
-    footpoints = []
+    orbital_points= [0 for i in range(n)]
 
-    for i in np.linspace(0, n, n+1):
-        pos = [R, np.pi/2 - incl*np.sin(omega_moon*i*t_step), (omega_plan*i*t_step)-(omega_moon*i*t_step)]
-        x, y, z = field_trace(pos, coeffs, 0.005, 200000)
-        point = (x[-1], y[-1], z[-1])
-        footpoints.append(point)
-        x_back, y_back, z_back = field_trace(pos, coeffs, 0.005, 200000, back=True)
-        point_back = (x_back[-1], y_back[-1], z_back[-1])
-        footpoints.append(point_back)
+    for i in range(0, n):
+        t = i * t_step
+        phi_moon_orbit = omega_moon * t
+        theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi/2 - incl))
+        phi_moon_eq = np.arctan(-1*np.tan(phi_moon_orbit)/np.cos(np.pi/2 - incl))
+        phi = omega_plan*t - phi_moon_eq
+        pos = [R, theta, phi]
+        orbital_points[i] = pos
+
+    return np.array(orbital_points)
+
+
+# def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
     
-    return footpoints
+#     (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'R', 'coeffs', 'T', 'planet_day', 'inc')
+#     omega_moon = (2*np.pi)/period_moon
+#     omega_plan = (2*np.pi)/period_plan
+#     t_step = period_moon/num
+#     n = num*num_orbits
+
+#     footpoints = []
+
+#     for i in np.linspace(0, n, n+1):
+#         pos = [R, np.pi/2 - incl*np.sin(omega_moon*i*t_step), (omega_plan*i*t_step)-(omega_moon*i*t_step)]
+#         x, y, z = field_trace(pos, coeffs, 0.005, 200000)
+#         point = (x[-1], y[-1], z[-1])
+#         footpoints.append(point)
+#         x_back, y_back, z_back = field_trace(pos, coeffs, 0.005, 200000, back=True)
+#         point_back = (x_back[-1], y_back[-1], z_back[-1])
+#         footpoints.append(point_back)
+    
+#     return footpoints
 
 ############# TITANIA #############
-# ax = plt.axes(projection = '3d')
-# ax.set_xlabel('x')
-# ax.set_ylabel('y')
-# ax.set_zlabel('z')
+ax = plt.axes(projection = '3d')
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
 
 # with tqdm(total=50, desc="FOOTPOINTS") as bar:
 #     footpoints = []
@@ -228,12 +250,15 @@ def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #
 
 # print(len(footpoints))
 # x, y, z = map(list, zip(*footpoints))
-# ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
 
-# u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
-# a = np.cos(u)*np.sin(v)
-# b = np.sin(u)*np.sin(v)
-# c = np.cos(v)
-# # ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
+orbital_points = orbit('Triton', 20, 1)
+x, y, z = spherical2cartesian(orbital_points)
+ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
 
-# plt.show()
+u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
+a = np.cos(u)*np.sin(v)
+b = np.sin(u)*np.sin(v)
+c = np.cos(v)
+ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
+
+plt.show()

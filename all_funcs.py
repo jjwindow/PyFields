@@ -205,10 +205,17 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian", back 
         return None
     else:
         if axes == "Cartesian":
-            x, z, y = map(list, zip(*[(r*np.sin(theta)*np.cos(phi), r*np.cos(theta), r*np.sin(theta)*np.sin(phi)) for r, theta, phi in zip(p_arr[:, 0], p_arr[:, 1], p_arr[:, 2])]))
+            x, z, y = spherical2cartesian(p_arr)
             return x, y, z
         else:
             return p_arr, B_arr
+
+def spherical2cartesian(p_arr):
+    """
+    p_arr = list of (r, theta, phi)
+    """
+    x, z, y = map(list, zip(*[(r*np.sin(theta)*np.cos(phi), r*np.cos(theta), r*np.sin(theta)*np.sin(phi)) for r, theta, phi in zip(p_arr[:, 0], p_arr[:, 1], p_arr[:, 2])]))
+    return x, y, z
 
 def multilines(phi, num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.01, maxits = 100000, plot = True):
     """
@@ -408,7 +415,7 @@ def functimer(func, args, n):
     print(f"{func.__name__} Time ({n} run avg):\n{mean}")
     return mean
 
-all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
+# all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
 
-t_arr = [functimer(moon_selector, (moon,), 20) for moon in all_moons]
-print(t_arr)
+# t_arr = [functimer(moon_selector, (moon,), 20) for moon in all_moons]
+# print(t_arr)
