@@ -93,24 +93,24 @@ def random_footpoints(n, moon, phi, trueTrace = False):
         
 
 ###### Plotting range of footpoints for a single position on lat-long plot ######
-phi = 0
-moon = 'Titania'
+# phi = 0
+# moon = 'Titania'
 # footpoints, trueFoot = random_footpoints(100, moon, phi, True)
-fpath = 'Titania_phi-0_n-100.npy'
-fpathTrue = 'Titania_phi-0_true.npy'
+# fpath = 'Titania_phi-0_n-100.npy'
+# fpathTrue = 'Titania_phi-0_true.npy'
 # with open(fpath, 'wb') as file:
 #     np.save(file, footpoints)
 # with open(fpathTrue, 'wb') as file:
 #     np.save(file, np.asarray(trueFoot))
 
-with open(fpath, 'rb') as file:
-    footpoints = np.load(file, allow_pickle=True)
-with open(fpathTrue, 'rb') as file:
-    trueFoot = np.load(file, allow_pickle=True)
+# with open(fpath, 'rb') as file:
+#     footpoints = np.load(file, allow_pickle=True)
+# with open(fpathTrue, 'rb') as file:
+#     trueFoot = np.load(file, allow_pickle=True)
     
-x, y, z  = map(list, zip(*footpoints))
-lat, longt = cartesian2latlong(x, y, z)
-trueLat, trueLongt = cartesian2latlong(*trueFoot)
+# x, y, z  = map(list, zip(*footpoints))
+# lat, longt = cartesian2latlong(x, y, z)
+# trueLat, trueLongt = cartesian2latlong(*trueFoot)
 
 
 def makeThisAPlottingFunc():
@@ -126,22 +126,22 @@ def makeThisAPlottingFunc():
     plt.show()
 
 ###### Calculating mean angular error ######
-ang_dev = []
-lat_dev = []
-long_dev = []
-for p in footpoints:
-    p = np.asarray(p)
-    lat, longt = cartesian2latlong(*p)
-    ang_dev.append(np.arccos(np.dot(p, trueFoot)/(norm(p)*norm(trueFoot))))
-    lat_dev.append(trueLat - lat)
-    long_dev.append(trueLongt - longt)
+# ang_dev = []
+# lat_dev = []
+# long_dev = []
+# for p in footpoints:
+#     p = np.asarray(p)
+#     lat, longt = cartesian2latlong(*p)
+#     ang_dev.append(np.arccos(np.dot(p, trueFoot)/(norm(p)*norm(trueFoot))))
+#     lat_dev.append(trueLat - lat)
+#     long_dev.append(trueLongt - longt)
 
-mean_ang_dev = np.mean(ang_dev)
-mean_lat_dev = np.mean(lat_dev)
-mean_long_dev = np.mean(long_dev)
-print("Mean Ang: ", mean_ang_dev*180/np.pi)
-print("Mean lat: ", mean_lat_dev)
-print("Mean long: ", mean_long_dev)
+# mean_ang_dev = np.mean(ang_dev)
+# mean_lat_dev = np.mean(lat_dev)
+# mean_long_dev = np.mean(long_dev)
+# print("Mean Ang: ", mean_ang_dev*180/np.pi)
+# print("Mean lat: ", mean_lat_dev)
+# print("Mean long: ", mean_long_dev)
 
 
 ###### Histograms ######
@@ -191,7 +191,7 @@ def histograms_dep():
 
 def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
     
-    (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'R', 'coeffs', 'T', 'parent_day', 'inc')
+    (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'a', 'coeffs', 'T', 'parent_day', 'inc')
     omega_moon = (2*np.pi)/period_moon
     omega_plan = (2*np.pi)/period_plan
     t_step = period_moon/num
@@ -202,9 +202,9 @@ def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #
     for i in range(0, n):
         t = i * t_step
         phi_moon_orbit = omega_moon * t
-        theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi/2 - incl))
-        phi_moon_eq = np.arctan(-1*np.tan(phi_moon_orbit)/np.cos(np.pi/2 - incl))
-        phi = omega_plan*t - phi_moon_eq
+        theta = np.arccos(-np.sin(phi_moon_orbit))
+        phi_moon_eq = np.arctan2((1-(np.cos(phi_moon_orbit)*np.cos(np.pi-incl))**2-(np.sin(phi_moon_orbit))**2)**0.5, np.cos(phi_moon_orbit)*np.cos(np.pi-incl))
+        phi = phi_moon_eq 
         pos = [R, theta, phi]
         orbital_points[i] = pos
 
@@ -251,14 +251,14 @@ ax.set_zlabel('z')
 # print(len(footpoints))
 # x, y, z = map(list, zip(*footpoints))
 
-orbital_points = orbit('Triton', 20, 1)
+orbital_points = orbit('Triton', 50, 1)
 x, y, z = spherical2cartesian(orbital_points)
 ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
 
-u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
-a = np.cos(u)*np.sin(v)
-b = np.sin(u)*np.sin(v)
-c = np.cos(v)
-ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
+# u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
+# a = np.cos(u)*np.sin(v)
+# b = np.sin(u)*np.sin(v)
+# c = np.cos(v)
+# ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
 
 plt.show()
