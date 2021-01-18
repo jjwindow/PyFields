@@ -202,8 +202,10 @@ def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #
     for i in range(0, n):
         t = i * t_step
         phi_moon_orbit = omega_moon * t
-        theta = np.arccos(-np.sin(phi_moon_orbit))
-        phi_moon_eq = np.arctan2((1-(np.cos(phi_moon_orbit)*np.cos(np.pi-incl))**2-(np.sin(phi_moon_orbit))**2)**0.5, np.cos(phi_moon_orbit)*np.cos(np.pi-incl))
+        # theta = np.arccos(-np.sin(phi_moon_orbit))
+        theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi-incl))
+        # phi_moon_eq = np.arctan2((1-(np.cos(phi_moon_orbit)*np.cos(np.pi-incl))**2-(np.sin(phi_moon_orbit))**2)**0.5, np.cos(phi_moon_orbit)*np.cos(np.pi-incl))
+        phi_moon_eq = np.arctan2(np.tan(phi_moon_orbit), np.cos(np.pi - incl)) + np.pi
         phi = phi_moon_eq 
         pos = [R, theta, phi]
         orbital_points[i] = pos
@@ -253,6 +255,9 @@ ax.set_zlabel('z')
 
 orbital_points = orbit('Triton', 50, 1)
 x, y, z = spherical2cartesian(orbital_points)
+ax_len = (np.ptp(x), np.ptp(y), np.ptp(z))
+print(ax_len)
+ax.set_box_aspect((np.ptp(x), np.ptp(y), np.ptp(z)))
 ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
 
 # u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
