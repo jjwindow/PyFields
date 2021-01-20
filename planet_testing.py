@@ -6,7 +6,7 @@ import numpy as np
 from numpy.linalg import norm
 from tqdm import tqdm
 import os.path
-from palettable.wesanderson import Aquatic2_5, Darjeeling2_5
+from palettable.wesanderson import Aquatic2_5, Cavalcanti_5
 
 
 # multiline_3D(10, [0., np.pi/3, 2*np.pi/3], coeffs=uranus)
@@ -32,22 +32,6 @@ def random_footpoints(n, moon, phi, trueTrace = False):
     footpoints - list; list of tuples, where each tuple is (x, y, z) position of a 
                  footpoint of a fieldline calculated from the random coefficients.
     """
-    # uranian_moons = {'ariel' : [7.469, np.pi/2, phi], 'umbriel' : [10.41, np.pi/2, phi], 
-    #                     'titania' : [17.07, np.pi/2, phi], 'oberon' : [22.83, np.pi/2, phi]}
-    # # Select coefficients to use 
-    # moon = moon.lower()
-    # if moon == 'triton':
-    #     a, g, h = neptune
-    #     a, g_err, h_err = neptune_uncert
-    #     ### START POS NEEDED - MUST BE A POINT ON THE ORBIT. NEED TO FIND GENERIC POINT,
-    #     ### E.G - THE THETA VAL WHERE PHI=0 OR VICE-VERSA
-    # elif moon in uranian_moons.keys():
-    #     a, g, h = uranus
-    #     a, g_err, h_err = uranus_uncert
-    #     ### SAME CONDITION AS FOR TRITON NEEDED FOR MIRANDA.
-    #     start_pos = uranian_moons[moon]
-    # else:
-    #     raise ValueError("`moon' arg must be one of the 5 major Uranian moons or 'triton'.")
 
     (R, coeffs, uncert) = moon_selector(moon, 'R', 'coeffs', 'uncert')
     start_pos = [R, np.pi/2, phi]
@@ -146,6 +130,9 @@ def makeThisAPlottingFunc():
 
 ###### Histograms ######
 def histograms_dep():
+    """
+    Histograms of angular deviation due to uncertainty of harmonic coefficients.
+    """
     lat_devs = []
     longt_devs = []
     latitudes = []
@@ -189,52 +176,62 @@ def histograms_dep():
 # ax2[1].axvline(trueLongt, color='k', linestyle='dashed', linewidth=1)
 
 
-def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
-    
+def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
+    """
+    Function to generate coordinates of an orbital path of a given satellite around its parent.
+    Can calculate orbits in the sidereal rest frame or in the planet's rest frame.
+
+    PARAMS
+    -----------------------------------------------------------------------------------
+    moon        -   str; name of one of the 5 Uranian moons, or Triton.
+    num         -   int; number of time segments to plot per orbit, i.e - time resolution.
+    num_orbits  -   float or int; number of orbits to trace. Only makes a difference for 
+                    inclined orbits with relative = True.
+    relative    -   bool; if false, orbit calculated is in sidereal rest frame, i.e - no
+                    consideration of planetary rotation. If true, then planetary rotation
+                    is calculated and orbit given is the path seen from a frame co-rotating 
+                    with the parent planet.
+    RETURNS
+    ------------------------------------------------------------------------------------
+    orbital_points  -   numpy array; array containing num + 1 points in spherical 
+                        coordinates, determining the orbital path. Each point is a list
+                        length 3, [r, theta, phi].
+    """
+    # Collect moon parameters
     (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'a', 'coeffs', 'T', 'parent_day', 'inc')
-    omega_moon = (2*np.pi)/period_moon
+    incl = (np.pi/180) * incl       # convert inclination to radians
+    omega_moon = (2*np.pi)/period_moon      # period -> frequency
     omega_plan = (2*np.pi)/period_plan
-    t_step = period_moon/num
-    n = num*num_orbits
+    t_step = period_moon/num 
+    n = int(num*num_orbits)     # number of points to plot - int() covers non-whole num_orbits.
 
-    orbital_points= [0 for i in range(n)]
+    orbital_points= [0 for i in range(n+1)]     # initialise output list
 
-    for i in range(0, n):
-        t = i * t_step
-        phi_moon_orbit = omega_moon * t
-        # theta = np.arccos(-np.sin(phi_moon_orbit))
-        theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi-incl))
-        # phi_moon_eq = np.arctan2((1-(np.cos(phi_moon_orbit)*np.cos(np.pi-incl))**2-(np.sin(phi_moon_orbit))**2)**0.5, np.cos(phi_moon_orbit)*np.cos(np.pi-incl))
-        phi_moon_eq = np.arctan2(np.tan(phi_moon_orbit), np.cos(np.pi - incl)) + np.pi
-        phi = phi_moon_eq 
+    for i in range(n+1):
+        t = i * t_step      # elapsed time
+        # angular argument of satellite in the plane of its orbit, more correctly called the 'argument of latitude'.
+        phi_moon_orbit = omega_moon * t     
+        # from Adam's eqns:
+        theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi-incl))    
+        phi_moon_eq = np.arctan2(-1*np.sin(phi_moon_orbit), np.cos(phi_moon_orbit)*np.cos(np.pi - incl)
+        # phi_moon_eq is latitude coordinate in equatorial plane.
+        if phi_moon_eq < 0:
+            # handles negative arctan2 output
+            print(phi_moon_eq)
+            phi_moon_eq += 2*np.pi
+        if relative:
+            # changes to planet rest frame
+            phi = phi_moon_eq - omega_plan * t
+        else:
+            phi = phi_moon_eq 
+        # append point to list
         pos = [R, theta, phi]
         orbital_points[i] = pos
-
     return np.array(orbital_points)
 
+############# ORBIT TESTING #############
 
-# def orbit(moon, num, num_orbits):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
-    
-#     (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'R', 'coeffs', 'T', 'planet_day', 'inc')
-#     omega_moon = (2*np.pi)/period_moon
-#     omega_plan = (2*np.pi)/period_plan
-#     t_step = period_moon/num
-#     n = num*num_orbits
-
-#     footpoints = []
-
-#     for i in np.linspace(0, n, n+1):
-#         pos = [R, np.pi/2 - incl*np.sin(omega_moon*i*t_step), (omega_plan*i*t_step)-(omega_moon*i*t_step)]
-#         x, y, z = field_trace(pos, coeffs, 0.005, 200000)
-#         point = (x[-1], y[-1], z[-1])
-#         footpoints.append(point)
-#         x_back, y_back, z_back = field_trace(pos, coeffs, 0.005, 200000, back=True)
-#         point_back = (x_back[-1], y_back[-1], z_back[-1])
-#         footpoints.append(point_back)
-    
-#     return footpoints
-
-############# TITANIA #############
+# set up 3d axes
 ax = plt.axes(projection = '3d')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
@@ -247,23 +244,56 @@ ax.set_zlabel('z')
 #         x, y, z = field_trace(start_pos, uranus, 0.005, 200000)
 #         # point = (x[-1], y[-1], z[-1])
 #         # footpoints.append(point)
-#         ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
+#         ax.plot3D(x, y, z, color=Cavalcanti_5.mpl_colors[3])
 #         bar.update()
 
 # print(len(footpoints))
 # x, y, z = map(list, zip(*footpoints))
 
-orbital_points = orbit('Triton', 50, 1)
-x, y, z = spherical2cartesian(orbital_points)
-ax_len = (np.ptp(x), np.ptp(y), np.ptp(z))
-print(ax_len)
-ax.set_box_aspect((np.ptp(x), np.ptp(y), np.ptp(z)))
-ax.plot3D(x, y, z, color=Darjeeling2_5.mpl_colors[3])
+def plot_orbits(moons_list, relative = False):
+    """
+    Plots all orbital paths for moons in a 'moons_list', in sidereal or planet
+    rest frame, on 3d axes. Also plots planet for scale.
+    PARAMS
+    -----------------------------------------------------------------------------
+    moons_list  -   array or list; contains only elements of type str, which must
+                    be one of the Uranian or Neptunian moons.
+    relative    -   bool; if false, orbits plotted in sidereal rest frame. Otherwise,
+                    plotted in planet rest frame.
+    """
+    # initialise lists
+    x_ptp_arr = []
+    y_ptp_arr = []
+    z_ptp_arr = []
 
-# u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
-# a = np.cos(u)*np.sin(v)
-# b = np.sin(u)*np.sin(v)
-# c = np.cos(v)
-# ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
+    # plot each moon in list
+    for i, moon in enumerate(moons_list):
+        orbital_points = orbit(moon, 50, 1)     # retrieve orbital path
+        x, y, z = spherical2cartesian(orbital_points)       # convert to Cartesian
+        ax.plot3D(x, y, z, color=Cavalcanti_5.mpl_colors[i], label = moon)
+        # save peak-to-peak width of orbital path in each co-ord.
+        x_ptp_arr.append(np.ptp(x))
+        y_ptp_arr.append(np.ptp(y))
+        z_ptp_arr.append(np.ptp(z))
 
-plt.show()
+    # plot planet.
+    u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
+    a = np.cos(u)*np.sin(v)
+    b = np.sin(u)*np.sin(v)
+    c = np.cos(v)
+    # find maximum bound for each coordinate
+    x_len = max(x_ptp_arr)
+    y_len = max(y_ptp_arr)
+    # maximum z-bound either set by orbit or by planet, must compare both
+    z_len = max(max(z_ptp_arr), np.ptp(c))
+    # set aspect ratio by largest path in each dimension -> no squished paths or planets
+    ax.set_box_aspect((x_len, y_len, z_len))
+    ax.plot_wireframe(a, b, c, color=Aquatic2_5.mpl_colors[0])
+    plt.legend()
+
+    plt.show()
+
+# Plotting the different planetary systems
+uranus_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon']
+# plot_orbits(uranus_moons)
+plot_orbits(['Triton'])

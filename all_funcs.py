@@ -212,7 +212,15 @@ def field_trace(start_pos, field_coeffs, ds, max_iter, axes = "Cartesian", back 
 
 def spherical2cartesian(p_arr):
     """
-    p_arr = list of (r, theta, phi)
+    Converts (2d) list of spherical coordinates to 3 (1d) lists of cartesian coordinates for
+    use in plotting functions.
+    PARAMS
+    ---------------------------------------------------------------------------------------
+    p_arr   -   list or numpy array (2D); list of [r, theta, phi] coordinates.
+    RETURNS
+    ---------------------------------------------------------------------------------------
+    x, y, z -   lists (1D); list of x-, y-, and z-coordinates (respectively) in Cartesian axes
+                corresponding to the same points in space defined by p_arr.
     """
     x, z, y = map(list, zip(*[(r*np.sin(theta)*np.cos(phi), r*np.cos(theta), r*np.sin(theta)*np.sin(phi)) for r, theta, phi in zip(p_arr[:, 0], p_arr[:, 1], p_arr[:, 2])]))
     return x, y, z
