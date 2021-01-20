@@ -213,7 +213,7 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
         phi_moon_orbit = omega_moon * t     
         # from Adam's eqns:
         theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi-incl))    
-        phi_moon_eq = np.arctan2(-1*np.sin(phi_moon_orbit), np.cos(phi_moon_orbit)*np.cos(np.pi - incl)
+        phi_moon_eq = np.arctan2(-1*np.sin(phi_moon_orbit), np.cos(phi_moon_orbit)*np.cos(np.pi - incl))
         # phi_moon_eq is latitude coordinate in equatorial plane.
         if phi_moon_eq < 0:
             # handles negative arctan2 output
@@ -296,4 +296,4 @@ def plot_orbits(moons_list, relative = False):
 # Plotting the different planetary systems
 uranus_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon']
 # plot_orbits(uranus_moons)
-plot_orbits(['Triton'])
+plot_orbits(['Triton'], True)
