@@ -250,7 +250,7 @@ ax.set_zlabel('z')
 # print(len(footpoints))
 # x, y, z = map(list, zip(*footpoints))
 
-def plot_orbits(moons_list, relative = False):
+def plot_orbits(moons_list, num, num_orbits, relative = False):
     """
     Plots all orbital paths for moons in a 'moons_list', in sidereal or planet
     rest frame, on 3d axes. Also plots planet for scale.
@@ -268,7 +268,7 @@ def plot_orbits(moons_list, relative = False):
 
     # plot each moon in list
     for i, moon in enumerate(moons_list):
-        orbital_points = orbit(moon, 50, 1)     # retrieve orbital path
+        orbital_points = orbit(moon, num, num_orbits, relative=relative)     # retrieve orbital path
         x, y, z = spherical2cartesian(orbital_points)       # convert to Cartesian
         ax.plot3D(x, y, z, color=Cavalcanti_5.mpl_colors[i], label = moon)
         # save peak-to-peak width of orbital path in each co-ord.
@@ -296,4 +296,4 @@ def plot_orbits(moons_list, relative = False):
 # Plotting the different planetary systems
 uranus_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon']
 # plot_orbits(uranus_moons)
-plot_orbits(['Triton'], True)
+plot_orbits(['Triton'], 200, 1, True)
