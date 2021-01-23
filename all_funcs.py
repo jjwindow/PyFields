@@ -10,9 +10,13 @@ import numpy as np
 import numba
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
+from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 import warnings
+import os.path
+from palettable.wesanderson import Aquatic2_5, Cavalcanti_5
+from numpy.linalg import norm
+import matplotlib as mat
 
 ######################### GLOBAL DEFINITIONS #############################
 
@@ -333,7 +337,7 @@ def cartesian2latlong(x, y, z):
             args[i] = np.asarray(elem)
     
     [x, y, z] = args
-    r = np.sqrt(x**2 + y**2 + x**2)
+    r = np.sqrt(x**2 + y**2 + z**2)
     lat = np.arcsin(z/r)*(180/(np.pi))
     longt = np.arctan2(y, x)*(180/(np.pi))
 
@@ -404,6 +408,8 @@ def moon_selector(moon, *args):
 
     return out_tup
 
+######################### TIMER #################################
+
 import time
 def functimer(func, args, n):
     """
@@ -423,7 +429,128 @@ def functimer(func, args, n):
     print(f"{func.__name__} Time ({n} run avg):\n{mean}")
     return mean
 
-# all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
+######################## COEFFICIENT UNCERTAINTIES ######################'''''
 
-# t_arr = [functimer(moon_selector, (moon,), 20) for moon in all_moons]
-# print(t_arr)
+def random_footpoints(n, moon, pos, trueTrace = False):
+    """
+    A function that generates random magnetic field footpoints within the bounds 
+    of the uncertainties of the magnetic field coefficients. New spherical harmonic 
+    expansion coefficients are calculated using a pseudorandom number generator, 
+    and n fieldlines are traced using these for a given moon-planet system at a 
+    fixed colatitude. The array of footpoints for all fieldlines is returned.
+
+    PARAMS
+    --------------------------------------------------------------------------------
+    n       -   int; number of random fieldlines to calculate.
+    moon    -   str; name of the moon to calculate footpoint uncertainties for.
+    phi     -   float; value of colatitude at which to start the fieldline.
+    trueTrace   -   bool; trace the fieldline using the accepted g, h coeffs.
+
+    RETURNS
+    ---------------------------------------------------------------------------------
+    footpoints - list; list of tuples, where each tuple is (x, y, z) position of a 
+                 footpoint of a fieldline calculated from the random coefficients.
+    """
+
+    (R, coeffs, uncert) = moon_selector(moon, 'a', 'coeffs', 'uncert')
+    # start_pos = [R, np.pi/2, phi]
+    (a, g, h) = coeffs
+    (a, g_err, h_err) = uncert
+    
+    # Trace the accepted fieldline if desired
+    if trueTrace:
+        # x, y, z = field_trace(start_pos, (a, g, h), 0.005, 200000)
+        x, y, z = field_trace(pos, coeffs, 0.005, 200000)
+        trueFoot_f = (x[-1], y[-1], z[-1])
+        x, y, z = field_trace(pos, coeffs, 0.005, 200000, back=True)
+        trueFoot_b = (x[-1], y[-1], z[-1])
+    # initialise footpoints array
+    footpoints_f = [0. for _ in range(n)]
+    footpoints_b = [0. for _ in range(n)]
+    with tqdm(total=n, desc=":)") as bar:
+        for k in range(n):
+            g_new = np.zeros((3,3))
+            h_new = np.zeros((3,3))
+
+            for i in range(3):
+                for j in range(3):
+                    # Ignore null coefficients
+                    if g[i][j] == 0.:
+                        pass
+                    else:
+                        # Generate random num between -1 and 1
+                        r_1 = (np.random.random()-0.5)*2
+                        # Use random num as multiplier on uncertainty, add
+                        # to coefficients
+                        g_new[i][j] = g[i][j] + g_err[i][j]*r_1
+                        # Repeat with different randnum for h coeffs
+                        r_2 = (np.random.random() - 0.5)*2
+                        h_new[i][j] = h[i][j] + h_err[i][j]*r_2
+            
+            coeffs = (a, g_new, h_new)
+            # Trace fieldline with new set of coefficients
+            x, y, z = field_trace(pos, coeffs, 0.005, 200000)
+            # Take fieldline footpoint
+            footpoints_f[k] = (x[-1], y[-1], z[-1])
+            x, y, z = field_trace(pos, coeffs, 0.005, 200000, back=True)
+            footpoints_b[k] = (x[-1], y[-1], z[-1])
+            bar.update()
+
+    if trueTrace:
+        return footpoints_f, footpoints_b, trueFoot_f, trueFoot_b
+    else:
+        return footpoints_f, footpoints_b
+
+######################## ORBIT CALCULATION ########################
+
+def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
+    """
+    Function to generate coordinates of an orbital path of a given satellite around its parent.
+    Can calculate orbits in the sidereal rest frame or in the planet's rest frame.
+
+    PARAMS
+    -----------------------------------------------------------------------------------
+    moon        -   str; name of one of the 5 Uranian moons, or Triton.
+    num         -   int; number of time segments to plot per orbit, i.e - time resolution.
+    num_orbits  -   float or int; number of orbits to trace. Only makes a difference for 
+                    inclined orbits with relative = True.
+    relative    -   bool; if false, orbit calculated is in sidereal rest frame, i.e - no
+                    consideration of planetary rotation. If true, then planetary rotation
+                    is calculated and orbit given is the path seen from a frame co-rotating 
+                    with the parent planet.
+    RETURNS
+    ------------------------------------------------------------------------------------
+    orbital_points  -   numpy array; array containing num + 1 points in spherical 
+                        coordinates, determining the orbital path. Each point is a list
+                        length 3, [r, theta, phi].
+    """
+    # Collect moon parameters
+    (R, coeffs, period_moon, period_plan, incl) = moon_selector(moon, 'a', 'coeffs', 'T', 'parent_day', 'inc')
+    incl = (np.pi/180) * incl       # convert inclination to radians
+    omega_moon = (2*np.pi)/period_moon      # period -> frequency
+    omega_plan = (2*np.pi)/period_plan
+    t_step = period_moon/num 
+    n = int(num*num_orbits)     # number of points to plot - int() covers non-whole num_orbits.
+
+    orbital_points= [0 for i in range(n+1)]     # initialise output list
+
+    for i in range(n+1):
+        t = i * t_step      # elapsed time
+        # angular argument of satellite in the plane of its orbit, more correctly called the 'argument of latitude'.
+        phi_moon_orbit = omega_moon * t     
+        # from Adam's eqns:
+        theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi-incl))    
+        phi_moon_eq = np.arctan2(-1*np.sin(phi_moon_orbit), np.cos(phi_moon_orbit)*np.cos(np.pi - incl))
+        # phi_moon_eq is latitude coordinate in equatorial plane.
+        if phi_moon_eq < 0:
+            # handles negative arctan2 output
+            phi_moon_eq += 2*np.pi
+        if relative:
+            # changes to planet rest frame
+            phi = phi_moon_eq - omega_plan * t
+        else:
+            phi = phi_moon_eq 
+        # append point to list
+        pos = [R, theta, phi]
+        orbital_points[i] = pos
+    return np.array(orbital_points)
