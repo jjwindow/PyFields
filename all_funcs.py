@@ -535,7 +535,7 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
     orbital_points= [0 for i in range(n+1)]     # initialise output list
     T_arr = [i*t_step for i in range(n+1)]
 
-    for t in T_arr:
+    for i, t in enumerate(T_arr):
         # angular argument of satellite in the plane of its orbit, more correctly called the 'argument of latitude'.
         phi_moon_orbit = omega_moon * t     
         # from Adam's eqns:
