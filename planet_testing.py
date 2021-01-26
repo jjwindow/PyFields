@@ -47,24 +47,6 @@ def makeThisAPlottingFunc():
     plt.legend()
     plt.show()
 
-###### Calculating mean angular error ######
-# ang_dev = []
-# lat_dev = []
-# long_dev = []
-# for p in footpoints:
-#     p = np.asarray(p)
-#     lat, longt = cartesian2latlong(*p)
-#     ang_dev.append(np.arccos(np.dot(p, trueFoot)/(norm(p)*norm(trueFoot))))
-#     lat_dev.append(trueLat - lat)
-#     long_dev.append(trueLongt - longt)
-
-# mean_ang_dev = np.mean(ang_dev)
-# mean_lat_dev = np.mean(lat_dev)
-# mean_long_dev = np.mean(long_dev)
-# print("Mean Ang: ", mean_ang_dev*180/np.pi)
-# print("Mean lat: ", mean_lat_dev)
-# print("Mean long: ", mean_long_dev)
-
 
 ###### Histograms ######
 def histograms_dep():

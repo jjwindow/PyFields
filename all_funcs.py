@@ -554,3 +554,47 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
         pos = [R, theta, phi]
         orbital_points[i] = pos
     return np.array(orbital_points)
+
+###### Calculating mean angular error ######
+
+def angular_deviation(footpoints_f_arr, trueFoot_f_arr, footpoints_b_arr, trueFoot_b_arr):
+
+    mean_ang_dev_f = []
+    mean_lat_dev_f = []
+    mean_long_dev_f = []
+    mean_ang_dev_b = []
+    mean_lat_dev_b = []
+    mean_long_dev_b = []
+
+    for i, (pos, trueFoot) in enumerate(trueFoot_f_arr):
+        trueLat, trueLongt = cartesian2latlong(*trueFoot)
+        ang_dev_f = []
+        lat_dev_f = []
+        long_dev_f = []
+        (pos, fp_arr) = footpoints_f_arr[i]
+        for fp in fp_arr:
+            # breakpoint()
+            lat, longt = cartesian2latlong(*fp)
+            ang_dev_f.append(np.arccos(np.dot(fp, trueFoot)/(norm(fp)*norm(trueFoot))))
+            lat_dev_f.append(trueLat - lat)
+            long_dev_f.append(trueLongt - longt)
+        mean_ang_dev_f.append((pos, np.mean(ang_dev_f)))
+        mean_lat_dev_f.append((pos, np.mean(lat_dev_f)))
+        mean_long_dev_f.append((pos, np.mean(long_dev_f)))
+
+    for i, (pos, trueFoot) in enumerate(trueFoot_b_arr):
+        trueLat, trueLongt = cartesian2latlong(*trueFoot)
+        ang_dev_b = []
+        lat_dev_b = []
+        long_dev_b = []
+        (pos, fp_arr) = footpoints_b_arr[i]
+        for fp in fp_arr:
+            lat, longt = cartesian2latlong(*fp)
+            ang_dev_b.append(np.arccos(np.dot(fp, trueFoot)/(norm(fp)*norm(trueFoot))))
+            lat_dev_b.append(trueLat - lat)
+            long_dev_b.append(trueLongt - longt)
+        mean_ang_dev_b.append((pos, np.mean(ang_dev_b)))
+        mean_lat_dev_b.append((pos, np.mean(lat_dev_b)))
+        mean_long_dev_b.append((pos, np.mean(long_dev_b)))
+    
+    return mean_ang_dev_f, mean_lat_dev_f, mean_long_dev_f, mean_ang_dev_b, mean_lat_dev_b, mean_long_dev_b

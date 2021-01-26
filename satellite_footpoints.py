@@ -39,17 +39,38 @@ with open('Titania/trueFoot_f_10_1_10.npy', 'rb') as file:
     trueFoot_f_arr = np.load(file, allow_pickle=True)
 with open('Titania/trueFoot_b_10_1_10.npy', 'rb') as file:
     trueFoot_b_arr = np.load(file, allow_pickle=True)
+with open('Titania/footpoints_f_10_1_10.npy', 'rb') as file:
+    footpoints_f_arr = np.load(file, allow_pickle=True)
+with open('Titania/footpoints_b_10_1_10.npy', 'rb') as file:
+    footpoints_b_arr = np.load(file, allow_pickle=True)
 
-all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
-plt.xlabel(r"Longitude ($^{\circ}$)")
-plt.ylabel(r"Latitude ($^{\circ}$)")
-for (pos, fp) in trueFoot_f_arr:
-    lat, longt = cartesian2latlong(*fp)
-    plt.plot(longt, lat, 'rx')
-for (pos, fp) in trueFoot_b_arr:
-    print("BACK")
-    lat, longt = cartesian2latlong(*fp)
-    print((longt, lat))
-    plt.plot(longt, lat, 'bx')
-plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'), mat.lines.Line2D([0,0], [1,1], color = 'b')), ('Forward', 'Backward'))
+mean_ang_dev_f, mean_lat_dev_f, mean_long_dev_f, mean_ang_dev_b, mean_lat_dev_b, mean_long_dev_b = angular_deviation(footpoints_f_arr, trueFoot_f_arr, footpoints_b_arr, trueFoot_b_arr)
+pos_arr, ang_f = map(list, zip(*mean_ang_dev_f))
+phi_arr = np.array(pos_arr)[:,2]
+for i, phi in enumerate(phi_arr):
+    while phi < 0:
+        phi += 2*np.pi
+    phi_arr[i] = phi
+
+(T,) = moon_selector('titania', 'T')
+n = 10
+T_arr = [T*i/(n+1) for i in range(n+1)]
+plt.plot(T_arr, ang_f)
 plt.show()
+# all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
+
+################## PLOT TITANIA FOOTPOINTS FROM SAVED DATA #################
+
+# plt.xlabel(r"Longitude ($^{\circ}$)")
+# plt.ylabel(r"Latitude ($^{\circ}$)")
+# for (pos, fp) in trueFoot_f_arr:
+#     lat, longt = cartesian2latlong(*fp)
+#     plt.plot(longt, lat, 'rx')
+# for (pos, fp) in trueFoot_b_arr:
+#     print("BACK")
+#     lat, longt = cartesian2latlong(*fp)
+#     print((longt, lat))
+#     plt.plot(longt, lat, 'bx')
+# plt.legend((mat.lines.Line2D([0,0], [1,1], color = 'r'), mat.lines.Line2D([0,0], [1,1], color = 'b')), ('Forward', 'Backward'))
+# plt.show()
+
