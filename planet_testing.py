@@ -136,7 +136,7 @@ def plot_orbits(moons_list, num, num_orbits, relative = False):
 
     # plot each moon in list
     for i, moon in enumerate(moons_list):
-        orbital_points = orbit(moon, num, num_orbits, relative=relative)     # retrieve orbital path
+        orbital_points, T_arr = orbit(moon, num, num_orbits, relative=relative)     # retrieve orbital path
         x, y, z = spherical2cartesian(orbital_points)       # convert to Cartesian
         ax.plot3D(x, y, z, color=Cavalcanti_5.mpl_colors[i], label = moon)
         # save peak-to-peak width of orbital path in each co-ord.

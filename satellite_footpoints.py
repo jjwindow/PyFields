@@ -3,7 +3,7 @@ from all_funcs import *
 
 def trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines):
     
-    orbital_points_arr = orbit(moon, num_orbit_points, num_orbits, relative = True)
+    orbital_points_arr, T_arr = orbit(moon, num_orbit_points, num_orbits, relative = True)
     l = len(orbital_points_arr)
     
     footpoints_f_arr = [0 for i in range(l)]
@@ -18,11 +18,11 @@ def trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines):
         trueFoot_f_arr[i] = (pos, trueFoot_f)
         trueFoot_b_arr[i] = (pos, trueFoot_b)
 
-    return footpoints_f_arr, footpoints_b_arr, trueFoot_f_arr, trueFoot_b_arr
+    return footpoints_f_arr, footpoints_b_arr, trueFoot_f_arr, trueFoot_b_arr, T_arr
 
 def save_moon_trace(moon, num_orbit_points, num_orbits, num_fieldlines):
 
-    paths = ['footpoints_f', 'footpoints_b', 'trueFoot_f', 'trueFoot_b']
+    paths = ['footpoints_f', 'footpoints_b', 'trueFoot_f', 'trueFoot_b', 'time']
 
     # footpoints_f_arr, footpoints_b_arr, trueFoot_f_arr, trueFoot_b_arr = trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines)
     all_footpoints = trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines)
@@ -33,30 +33,28 @@ def save_moon_trace(moon, num_orbit_points, num_orbits, num_fieldlines):
         with open(fpath, 'wb') as file:
             np.save(file, footpoint)
 
-# save_moon_trace('Titania', 10, 1, 10)
+save_moon_trace('Miranda', 10, 1, 10)
 
-with open('Titania/trueFoot_f_10_1_10.npy', 'rb') as file:
+# moon = 'Titania'
+moon = 'Miranda'
+
+with open(f'{moon}/trueFoot_f_10_1_10.npy', 'rb') as file:
     trueFoot_f_arr = np.load(file, allow_pickle=True)
-with open('Titania/trueFoot_b_10_1_10.npy', 'rb') as file:
+with open(f'{moon}/trueFoot_b_10_1_10.npy', 'rb') as file:
     trueFoot_b_arr = np.load(file, allow_pickle=True)
-with open('Titania/footpoints_f_10_1_10.npy', 'rb') as file:
+with open(f'{moon}/footpoints_f_10_1_10.npy', 'rb') as file:
     footpoints_f_arr = np.load(file, allow_pickle=True)
-with open('Titania/footpoints_b_10_1_10.npy', 'rb') as file:
+with open(f'{moon}/footpoints_b_10_1_10.npy', 'rb') as file:
     footpoints_b_arr = np.load(file, allow_pickle=True)
+with open(f'{moon}/time_10_1_10.npy', 'rb') as file:
+    T_arr = np.load(file, allow_pickle=True)
 
 mean_ang_dev_f, mean_lat_dev_f, mean_long_dev_f, mean_ang_dev_b, mean_lat_dev_b, mean_long_dev_b = angular_deviation(footpoints_f_arr, trueFoot_f_arr, footpoints_b_arr, trueFoot_b_arr)
 pos_arr, ang_f = map(list, zip(*mean_ang_dev_f))
-phi_arr = np.array(pos_arr)[:,2]
-for i, phi in enumerate(phi_arr):
-    while phi < 0:
-        phi += 2*np.pi
-    phi_arr[i] = phi
 
-(T,) = moon_selector('titania', 'T')
-n = 10
-T_arr = [T*i/(n+1) for i in range(n+1)]
 plt.plot(T_arr, ang_f)
 plt.show()
+
 # all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
 
 ################## PLOT TITANIA FOOTPOINTS FROM SAVED DATA #################

@@ -533,9 +533,9 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
     n = int(num*num_orbits)     # number of points to plot - int() covers non-whole num_orbits.
 
     orbital_points= [0 for i in range(n+1)]     # initialise output list
+    T_arr = [i*t_step for i in range(n+1)]
 
-    for i in range(n+1):
-        t = i * t_step      # elapsed time
+    for t in T_arr:
         # angular argument of satellite in the plane of its orbit, more correctly called the 'argument of latitude'.
         phi_moon_orbit = omega_moon * t     
         # from Adam's eqns:
@@ -553,7 +553,7 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
         # append point to list
         pos = [R, theta, phi]
         orbital_points[i] = pos
-    return np.array(orbital_points)
+    return np.array(orbital_points), np.array(T_arr)
 
 ###### Calculating mean angular error ######
 
