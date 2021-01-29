@@ -33,27 +33,32 @@ def save_moon_trace(moon, num_orbit_points, num_orbits, num_fieldlines):
         with open(fpath, 'wb') as file:
             np.save(file, footpoint)
 
-save_moon_trace('Miranda', 10, 1, 10)
+all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon'] #, 'Triton']
+for moon in all_moons:
+    T_s, T_p = moon_selector(moon, 'T', 'parent_day')
+    n_orbits = np.ceil(T_p/(T_p-T_s))
+    save_moon_trace(moon, 10, 1, 10)   
 
 # moon = 'Titania'
-moon = 'Miranda'
+# moon = 'Miranda'
+# moon = 'Ariel'
 
-with open(f'{moon}/trueFoot_f_10_1_10.npy', 'rb') as file:
-    trueFoot_f_arr = np.load(file, allow_pickle=True)
-with open(f'{moon}/trueFoot_b_10_1_10.npy', 'rb') as file:
-    trueFoot_b_arr = np.load(file, allow_pickle=True)
-with open(f'{moon}/footpoints_f_10_1_10.npy', 'rb') as file:
-    footpoints_f_arr = np.load(file, allow_pickle=True)
-with open(f'{moon}/footpoints_b_10_1_10.npy', 'rb') as file:
-    footpoints_b_arr = np.load(file, allow_pickle=True)
-with open(f'{moon}/time_10_1_10.npy', 'rb') as file:
-    T_arr = np.load(file, allow_pickle=True)
+# with open(f'{moon}/trueFoot_f_10_1_10.npy', 'rb') as file:
+#     trueFoot_f_arr = np.load(file, allow_pickle=True)
+# with open(f'{moon}/trueFoot_b_10_1_10.npy', 'rb') as file:
+#     trueFoot_b_arr = np.load(file, allow_pickle=True)
+# with open(f'{moon}/footpoints_f_10_1_10.npy', 'rb') as file:
+#     footpoints_f_arr = np.load(file, allow_pickle=True)
+# with open(f'{moon}/footpoints_b_10_1_10.npy', 'rb') as file:
+#     footpoints_b_arr = np.load(file, allow_pickle=True)
+# with open(f'{moon}/time_10_1_10.npy', 'rb') as file:
+#     T_arr = np.load(file, allow_pickle=True)
 
-mean_ang_dev_f, mean_lat_dev_f, mean_long_dev_f, mean_ang_dev_b, mean_lat_dev_b, mean_long_dev_b = angular_deviation(footpoints_f_arr, trueFoot_f_arr, footpoints_b_arr, trueFoot_b_arr)
-pos_arr, ang_f = map(list, zip(*mean_ang_dev_f))
+# mean_ang_dev_f, mean_lat_dev_f, mean_long_dev_f, mean_ang_dev_b, mean_lat_dev_b, mean_long_dev_b = angular_deviation(footpoints_f_arr, trueFoot_f_arr, footpoints_b_arr, trueFoot_b_arr)
+# pos_arr, ang_f = map(list, zip(*mean_ang_dev_f))
 
-plt.plot(T_arr, ang_f)
-plt.show()
+# plt.plot(T_arr, ang_f)
+# plt.show()
 
 # all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon', 'Triton']
 

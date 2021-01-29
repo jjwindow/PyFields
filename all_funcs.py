@@ -460,9 +460,9 @@ def random_footpoints(n, moon, pos, trueTrace = False):
     # Trace the accepted fieldline if desired
     if trueTrace:
         # x, y, z = field_trace(start_pos, (a, g, h), 0.005, 200000)
-        x, y, z = field_trace(pos, coeffs, 0.005, 200000)
+        x, y, z = field_trace(pos, coeffs, 0.0075, 133000)
         trueFoot_f = (x[-1], y[-1], z[-1])
-        x, y, z = field_trace(pos, coeffs, 0.005, 200000, back=True)
+        x, y, z = field_trace(pos, coeffs, 0.0075, 133000, back=True)
         trueFoot_b = (x[-1], y[-1], z[-1])
     # initialise footpoints array
     footpoints_f = [0. for _ in range(n)]
