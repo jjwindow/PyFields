@@ -28,15 +28,92 @@ def convergence_test(moon, pos, n_min, n_max, step):
     
     return n_array, ang_dev_arr_f, ang_dev_arr_b, lat_dev_arr_f, lat_dev_arr_b, long_dev_arr_f, long_dev_arr_b
 
-n_min = 5
-n_max = 500
+n_min = 20
+n_max = 250
 step = 10
-arrs = convergence_test('titania', [17.07, np.pi/2, np.pi], 5, 500, 10)
-fpaths = ['arange', 'angdevs_f', 'angdevs_b', 'latdev_f', 'latdev_b', 'longdev_f', 'longdev_b']
-fpaths = ['Titania/' + path + f'_{n_min}_{n_max}_{step}_phi_pi.npy' for path in fpaths]
-for arr, path in zip(list(arrs), fpaths):
-    with open(path, 'wb') as file:
-        np.save(file, n_array)
-        
-plt.plot(n_array, ang_dev_arr_f, 'bx')
-plt.show()
+# arrs = convergence_test('titania', [17.07, np.pi/2, np.pi], n_min, n_max, step)
+_fpaths = ['arange', 'angdevs_f', 'angdevs_b', 'latdev_f', 'latdev_b', 'longdev_f', 'longdev_b']
+fpaths = ['Titania/' + path + f'_{n_min}_{n_max}_{step}_phi_pi.npy' for path in _fpaths]
+# for arr, path in zip(list(arrs), fpaths):
+#     with open(path, 'wb') as file:
+#         np.save(file, arr)
+
+with open(fpaths[0], 'rb') as file:
+    n_array = np.load(file, allow_pickle=True)
+with open(fpaths[1], 'rb') as file:
+    angdevs_f = np.load(file, allow_pickle=True)
+with open(fpaths[2], 'rb') as file:
+    angdevs_b = np.load(file, allow_pickle=True)
+with open(fpaths[3], 'rb') as file:
+    latdev_f = np.load(file, allow_pickle=True)
+with open(fpaths[4], 'rb') as file:
+    latdev_b = np.load(file, allow_pickle=True)
+with open(fpaths[5], 'rb') as file:
+    longdev_f = np.load(file, allow_pickle=True)
+with open(fpaths[6], 'rb') as file:
+    longdev_b = np.load(file, allow_pickle=True)
+
+# n_array = arrs[0]
+# for i in range(1, len(arrs)):
+#     plt.plot(n_array, arrs[i], label = _fpaths[i])  
+
+def forward_backward_plots():
+    # Make plot of forward and backward footpoint deviations
+    # for ang. dev, lat, long. Comment/uncomment as necessary.
+    fig, axs = plt.subplots(2, 1, sharex=True)
+    fig.add_subplot(111, frameon=False)
+    plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+    plt.xlabel("No. random fieldlines")
+    plt.ylabel(r"Ang. deviation squared ($^{\circ}$)")
+    # plt.ylabel("Angular deviation (rad)")
+    # axs[0].plot(n_array, angdevs_f, label = 'Forward')
+    # plt.plot(n_array, angdevs_b, label = 'Backward')
+
+    # GROUP BY LAT-LONG
+    # axs[0].set_title("Latitude")
+    # axs[0].plot(n_array, [lat**2 for lat in latdev_f], label = "Forward")
+    # axs[0].plot(n_array, [lat**2 for lat in latdev_b], label = "Backward")
+    # axs[0].legend()
+    # axs[1].set_title("Longitude")
+    # axs[1].plot(n_array, [long**2 for long in longdev_f], label = "Forward")
+    # axs[1].plot(n_array, [long**2 for long in longdev_b], label = "Backward")
+    # axs[1].legend()
+
+    # GROUP BY FORWARD-BACKWARD
+    axs[0].set_title("Field Into Planet")
+    axs[0].plot(n_array, [lat**2 for lat in latdev_f], label = "Latitude")
+    axs[0].plot(n_array, [long**2 for long in longdev_f], label = "Longitude")
+    axs[0].legend()
+    axs[1].set_title("Field Out Of Planet")
+    axs[1].plot(n_array, [lat**2 for lat in latdev_b], label = "Latitude")
+    axs[1].plot(n_array, [long**2 for long in longdev_b], label = "Longitude")
+    axs[1].legend()
+    # plt.ylabel("Longitudinal deviation (rad)")
+    # plt.plot(n_array, longdev_f, label = "Forward")
+    # plt.plot(n_array, longdev_b, label = "Backward")
+    plt.show()
+
+def triple_angle_plots():
+    # Make plot of ang, lat, long deviations for both forwards
+    # and backwards separately.
+    fig, axs = plt.subplots(2,1, sharex=True)
+    fig.add_subplot(111, frameon=False)
+    # hide tick and tick label of the big axis
+    plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+    plt.xlabel("Num. Random Fieldlines")
+    plt.ylabel("Mean deviation from non-random footpoint (rad)")
+    axs[0].plot(n_array, angdevs_f, label="Angle")
+    axs[0].plot(n_array, latdev_f, label = "Latitude")
+    axs[0].plot(n_array, longdev_f, label = "Longitude")
+    axs[0].set_title("Fieldlines into planet")
+    axs[0].legend()
+    axs[1].plot(n_array, angdevs_b, label="Angle")
+    axs[1].plot(n_array, latdev_b, label = "Latitude")
+    axs[1].plot(n_array, longdev_b, label = "Longitude")
+    axs[1].set_title("Fieldlines out of planet")
+    axs[1].legend()
+
+    plt.show()
+
+# triple_angle_plots()
+forward_backward_plots()
