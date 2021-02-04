@@ -467,7 +467,7 @@ def random_footpoints(n, moon, pos, trueTrace = False):
     # initialise footpoints array
     footpoints_f = [0. for _ in range(n)]
     footpoints_b = [0. for _ in range(n)]
-    with tqdm(total=n, desc=f"{moon}, phi={pos[2]}: ") as bar:
+    with tqdm(total=n, desc=f"{moon}, phi={pos[2]}") as bar:
         for k in range(n):
             g_new = np.zeros((3,3))
             h_new = np.zeros((3,3))
