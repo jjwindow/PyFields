@@ -9,10 +9,34 @@ import os.path
 from palettable.wesanderson import Aquatic2_5, Cavalcanti_5
 
 
-# multiline_3D(10, [0., np.pi/3, 2*np.pi/3], coeffs=uranus)
-# plt.show()
+fig = plt.figure()
+ax = plt.axes(projection = '3d')
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
 
-        
+
+phi_array = np.linspace(0, 2*np.pi, 80)
+full_field_lines = []
+for phi in phi_array:
+    field_lines = multilines(phi, 12, 0, 2*np.pi, coeffs=uranus, ds=0.01, maxits=100000, plot=False)
+    full_field_lines.append(field_lines)
+    for field_line in field_lines:
+        (x, y, z) = field_line
+        ax.plot3D(x, y, z, color=Aquatic2_5.mpl_colors[0])
+fpath = 'Neptune_Fields/Uranus_quadrupole_field_80phi_12theta.npy'
+with open(fpath, 'wb') as file:
+    np.save(file, full_field_lines)
+# all_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon'] 
+# for i, moon in enumerate(all_moons):
+#     orbital_points, T_arr = orbit(moon, 200, 1, relative=False)
+#     x, y, z = spherical2cartesian(orbital_points) 
+#     ax.plot3D(x, y, z, color=Cavalcanti_5.mpl_colors[i], label = moon)
+# orbital_points, T_arr = orbit('Triton', 200, 1, relative=True)
+# x, y, z = spherical2cartesian(orbital_points) 
+# ax.plot3D(x, y, z, color=Cavalcanti_5.mpl_colors[4], label = 'Triton')
+# plt.legend()
+# plt.show()
 
 ###### Plotting range of footpoints for a single position on lat-long plot ######
 # phi = 0
@@ -100,10 +124,10 @@ def histograms_dep():
 ############# ORBIT TESTING #############
 
 # set up 3d axes
-ax = plt.axes(projection = '3d')
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('z')
+# ax = plt.axes(projection = '3d')
+# ax.set_xlabel('x')
+# ax.set_ylabel('y')
+# ax.set_zlabel('z')
 
 # with tqdm(total=50, desc="FOOTPOINTS") as bar:
 #     footpoints = []
@@ -162,6 +186,6 @@ def plot_orbits(moons_list, num, num_orbits, relative = False):
     plt.show()
 
 # Plotting the different planetary systems
-uranus_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon']
+# uranus_moons = ['Miranda', 'Ariel', 'Umbriel', 'Titania', 'Oberon']
 # plot_orbits(uranus_moons)
-plot_orbits(uranus_moons, 200, 1, True)
+# plot_orbits(uranus_moons, 200, 1, True)
