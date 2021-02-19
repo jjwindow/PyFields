@@ -17,6 +17,7 @@ import os.path
 from palettable.wesanderson import Aquatic2_5, Cavalcanti_5
 from numpy.linalg import norm
 import matplotlib as mat
+import os
 
 ######################### GLOBAL DEFINITIONS #############################
 
@@ -257,17 +258,17 @@ def multilines(phi, num, th_min = 0, th_max = 2*np.pi, coeffs = dipole, ds = 0.0
     # field_lines = np.asarray(field_lines)
     return field_lines
 
-def multiline_3D(num_th, phi_array, coeffs = dipole, ds = 0.01, maxits = 100000):
+def multiline_3D(num_th, phi_array, th_min, th_max, coeffs = dipole, ds = 0.01, maxits = 100000):
     fig=plt.figure()
     ax = plt.axes(projection = '3d')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
     for phi in phi_array:
-        field_lines = multilines(phi, num_th, th_min=-np.pi/2, th_max=np.pi/2, coeffs=coeffs, ds=ds, maxits=maxits, plot=False)
+        field_lines = multilines(phi, num_th, th_min=th_min, th_max=th_max, coeffs=coeffs, ds=ds, maxits=maxits, plot=False)
         for field_line in field_lines:
             (x, y, z) = field_line
-            ax.plot3D(x, y, z, color='b')
+            ax.plot3D(x, y, z, color=Aquatic2_5.mpl_colors[0])
 
 
 ##################### ANALYTIC COMPARISONS #######################
@@ -467,34 +468,34 @@ def random_footpoints(n, moon, pos, trueTrace = False):
     # initialise footpoints array
     footpoints_f = [0. for _ in range(n)]
     footpoints_b = [0. for _ in range(n)]
-    with tqdm(total=n, desc=f"{moon}, phi={pos[2]}") as bar:
-        for k in range(n):
-            g_new = np.zeros((3,3))
-            h_new = np.zeros((3,3))
+    # with tqdm(total=n, desc=f"{moon}, phi={pos[2]}") as bar:
+    for k in range(n):
+        g_new = np.zeros((3,3))
+        h_new = np.zeros((3,3))
 
-            for i in range(3):
-                for j in range(3):
-                    # Ignore null coefficients
-                    if g[i][j] == 0.:
-                        pass
-                    else:
-                        # Generate random num between -1 and 1
-                        r_1 = (np.random.random()-0.5)*2
-                        # Use random num as multiplier on uncertainty, add
-                        # to coefficients
-                        g_new[i][j] = g[i][j] + g_err[i][j]*r_1
-                        # Repeat with different randnum for h coeffs
-                        r_2 = (np.random.random() - 0.5)*2
-                        h_new[i][j] = h[i][j] + h_err[i][j]*r_2
-            
-            coeffs = (a, g_new, h_new)
-            # Trace fieldline with new set of coefficients
-            x, y, z = field_trace(pos, coeffs, 0.005, 200000)
-            # Take fieldline footpoint
-            footpoints_f[k] = (x[-1], y[-1], z[-1])
-            x, y, z = field_trace(pos, coeffs, 0.005, 200000, back=True)
-            footpoints_b[k] = (x[-1], y[-1], z[-1])
-            bar.update()
+        for i in range(3):
+            for j in range(3):
+                # Ignore null coefficients
+                if g[i][j] == 0.:
+                    pass
+                else:
+                    # Generate random num between -1 and 1
+                    r_1 = (np.random.random()-0.5)*2
+                    # Use random num as multiplier on uncertainty, add
+                    # to coefficients
+                    g_new[i][j] = g[i][j] + g_err[i][j]*r_1
+                    # Repeat with different randnum for h coeffs
+                    r_2 = (np.random.random() - 0.5)*2
+                    h_new[i][j] = h[i][j] + h_err[i][j]*r_2
+        
+        coeffs = (a, g_new, h_new)
+        # Trace fieldline with new set of coefficients
+        x, y, z = field_trace(pos, coeffs, 0.005, 200000)
+        # Take fieldline footpoint
+        footpoints_f[k] = (x[-1], y[-1], z[-1])
+        x, y, z = field_trace(pos, coeffs, 0.005, 200000, back=True)
+        footpoints_b[k] = (x[-1], y[-1], z[-1])
+            # bar.update()
 
     if trueTrace:
         return footpoints_f, footpoints_b, trueFoot_f, trueFoot_b
@@ -503,7 +504,7 @@ def random_footpoints(n, moon, pos, trueTrace = False):
 
 ######################## ORBIT CALCULATION ########################
 
-def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
+def orbit(moon, num, num_orbits, period = 'relative', relative = False):      #num_orbits is how many sidereal orbits #num gives num of points in one sidereal orbit
     """
     Function to generate coordinates of an orbital path of a given satellite around its parent.
     Can calculate orbits in the sidereal rest frame or in the planet's rest frame.
@@ -529,7 +530,15 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
     incl = (np.pi/180) * incl       # convert inclination to radians
     omega_moon = (2*np.pi)/period_moon      # period -> frequency
     omega_plan = (2*np.pi)/period_plan
-    t_step = period_moon/num 
+
+    if period.lower() == 'relative':
+        p = period_moon*period_plan/abs(period_moon-period_plan)
+    elif period.lower() == 'sidereal':
+        p = period_moon
+    else:
+        raise Exception("Orbit: period arg must be 'relative' or 'sidereal'; relative by default.")
+
+    t_step = p/num 
     n = int(num*num_orbits)     # number of points to plot - int() covers non-whole num_orbits.
 
     orbital_points= [0 for i in range(n+1)]     # initialise output list
@@ -537,7 +546,7 @@ def orbit(moon, num, num_orbits, relative = False):      #num_orbits is how many
 
     for i, t in enumerate(T_arr):
         # angular argument of satellite in the plane of its orbit, more correctly called the 'argument of latitude'.
-        phi_moon_orbit = omega_moon * t     
+        phi_moon_orbit = omega_moon * t   
         # from Adam's eqns:
         theta = np.arccos(np.cos(phi_moon_orbit)*np.sin(np.pi-incl))    
         phi_moon_eq = np.arctan2(-1*np.sin(phi_moon_orbit), np.cos(phi_moon_orbit)*np.cos(np.pi - incl))
@@ -598,3 +607,71 @@ def angular_deviation(footpoints_f_arr, trueFoot_f_arr, footpoints_b_arr, trueFo
         mean_long_dev_b.append((pos, np.mean(long_dev_b)))
     
     return mean_ang_dev_f, mean_lat_dev_f, mean_long_dev_f, mean_ang_dev_b, mean_lat_dev_b, mean_long_dev_b
+
+################## TRACING & SAVING ############################
+
+def trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines):
+    
+    orbital_points_arr, T_arr = orbit(moon, num_orbit_points, num_orbits, relative = True)
+    l = len(orbital_points_arr)
+    
+    footpoints_f_arr = [0 for i in range(l)]
+    footpoints_b_arr = [0 for i in range(l)]
+    trueFoot_f_arr = [0 for i in range(l)]
+    trueFoot_b_arr = [0 for i in range(l)]
+
+    n = len(orbital_points_arr)
+    # with tqdm(total=n, desc=f"{moon}") as bar:
+    for i, pos in enumerate(orbital_points_arr):
+        footpoints_f, footpoints_b, trueFoot_f, trueFoot_b = random_footpoints(num_fieldlines, moon, pos, trueTrace = True)
+        footpoints_f_arr[i] = (pos, footpoints_f)
+        footpoints_b_arr[i] = (pos, footpoints_b)
+        trueFoot_f_arr[i] = (pos, trueFoot_f)
+        trueFoot_b_arr[i] = (pos, trueFoot_b)
+            # bar.update()
+
+    return footpoints_f_arr, footpoints_b_arr, trueFoot_f_arr, trueFoot_b_arr, T_arr
+
+def save_moon_trace(moon, num_orbit_points, num_orbits, num_fieldlines):
+    if num_fieldlines != 0:
+        paths = ['footpoints_f', 'footpoints_b', 'trueFoot_f', 'trueFoot_b', 'time']
+        all_footpoints = trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines)
+    else:
+        paths = ['trueFoot_f', 'trueFoot_b', 'time']
+        fp_f, fp_b, *all_footpoints = trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines)
+    # footpoints_f_arr, footpoints_b_arr, trueFoot_f_arr, trueFoot_b_arr = trace_full_orbit(moon, num_orbit_points, num_orbits, num_fieldlines)
+    cdir = os.getcwd()
+    dest = os.path.join(cdir, 'Finals', moon)
+    if not os.path.exists(dest):
+        os.makedirs(dest)
+
+    all_footpoints = list(all_footpoints)
+    
+    for path, footpoint in zip(paths, all_footpoints):
+        fpath = f"Finals/{moon}/{path}_{num_orbit_points}_{num_orbits}.npy"
+        with open(fpath, 'wb') as file:
+            np.save(file, footpoint)
+
+def trace_and_save(moon, num_orbit_points, num_orbits, num_fieldlines, t_s = None, t_f = None):
+
+    if (t_s is not None) and (t_f is not None):
+        # Use trace partial orbit
+        pass
+    else:
+        # Generate arrays of orbit coordinates and time series        
+        orbital_points, time = orbit(moon, num_orbit_points, num_orbits, relative = True)
+        
+        cdir = os.getcwd()
+        dest = os.path.join(cdir, 'Finals', moon)
+        if not os.path.exists(dest):
+            os.makedirs(dest)
+
+        paths = ['footpoints_f', 'footpoints_b', 'trueFoot_f', 'trueFoot_b']
+
+        for i, pos in enumerate(orbital_points):
+            *lists, = random_footpoints(num_fieldlines, moon, pos, trueTrace = True)
+
+            for path, list in zip(paths, lists):
+                fpath = f"Finals/{moon}/{path}_{num_orbit_points}_{num_orbits}_{num_fieldlines}_{i}.npy"
+                with open(fpath, mode='wb') as file:
+                    np.save(file, list)
